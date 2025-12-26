@@ -8,4 +8,4 @@ spec:
   routes:
     default: /task-created
   scopes:
-  - notification-service
+  - analytics-service
