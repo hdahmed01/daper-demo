@@ -28,6 +28,17 @@ dapr run `
    --resources-path "C:/Users/PC/Desktop/web/daper/TaskManagement/components" `
    -- java -jar analytics-service/target/analytics-service-0.0.1-SNAPSHOT.jar
 
+
+dapr run `
+   --app-id email-service `
+   --app-port 8084 `
+   --dapr-http-port 3503 `
+   --config "C:/Users/PC/Desktop/web/daper/TaskManagement/components/tracing.yaml" `
+   --resources-path "C:/Users/PC/Desktop/web/daper/TaskManagement/components" `
+   -- java -jar email-service/target/email-service-0.0.1-SNAPSHOT.jar
+
+
+
 docker run -d `
   --name jaeger `
   -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 `
@@ -40,3 +51,9 @@ docker run -d `
   -p 14250:14250 `
   -p 9411:9411 `
   jaegertracing/all-in-one:latest
+
+
+
+
+
+  docker run -d -p 1025:1025 -p 8025:8025 --name mailhog mailhog/mailhog

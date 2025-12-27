@@ -1,0 +1,27 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: email-binding
+spec:
+  type: bindings.smtp
+  version: v1
+  metadata:
+    # MailHog SMTP Configuration
+    - name: host
+      value: "localhost"
+    - name: port
+      value: "1025"
+    - name: user
+      value: ""  # MailHog doesn't require auth
+    - name: password
+      value: ""
+    - name: skipTLSVerify
+      value: "true"
+    - name: emailFrom
+      value: "taskmanagement@example.com"
+    - name: emailTo
+      value: "user@example.com"
+    - name: subject
+      value: "Task Notification"
+scopes:
+  - email-service
