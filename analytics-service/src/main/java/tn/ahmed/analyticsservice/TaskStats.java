@@ -1,60 +1,125 @@
 package tn.ahmed.analyticsservice;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
- * TaskStats Model - Represents aggregated statistics
- *
- * This object is stored in Dapr State Store (Redis) with key "global-task-stats"
- * and updated every time a task-created event is received.
- *
- * Example JSON:
- * {
- *   "totalTasks": 150,
- *   "tasksToday": 12,
- *   "lastUpdated": "2024-12-26T15:30:45.123",
- *   "tasksByTitle": {
- *     "Buy groceries": 35,
- *     "Write report": 22,
- *     "Call client": 18
- *   }
- * }
+ * Enhanced Task Statistics Model
+ * Stores comprehensive analytics about task creation and patterns
  */
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaskStats {
 
-    /**
-     * Total number of tasks created since the beginning
-     */
-    @JsonProperty("totalTasks")
+    // ═══════════════════════════════════════════════════════════
+    // BASIC COUNTERS
+    // ═══════════════════════════════════════════════════════════
     private int totalTasks;
-
-    /**
-     * Number of tasks created today (reset daily at midnight)
-     */
-    @JsonProperty("tasksToday")
     private int tasksToday;
-
-    /**
-     * Last time the stats were updated (ISO 8601 format)
-     */
-    @JsonProperty("lastUpdated")
     private String lastUpdated;
 
-    /**
-     * Distribution of tasks by title
-     * Key: Task title
-     * Value: Number of tasks with that title
-     */
-    @JsonProperty("tasksByTitle")
+    // ═══════════════════════════════════════════════════════════
+    // TITLE ANALYSIS
+    // ═══════════════════════════════════════════════════════════
     private Map<String, Integer> tasksByTitle;
+
+    // ═══════════════════════════════════════════════════════════
+    // TIME-BASED ANALYTICS
+    // ═══════════════════════════════════════════════════════════
+    @Builder.Default
+    private Map<String, Integer> tasksByHour = new HashMap<>();  // "14" -> 25 tasks
+
+    @Builder.Default
+    private Map<String, Integer> tasksByDayOfWeek = new HashMap<>();  // "Monday" -> 120 tasks
+
+    @Builder.Default
+    private Map<String, Integer> tasksByMonth = new HashMap<>();  // "2024-12" -> 450 tasks
+
+    // ═══════════════════════════════════════════════════════════
+    // PERFORMANCE METRICS
+    // ═══════════════════════════════════════════════════════════
+    @Builder.Default
+    private double averageTasksPerDay = 0.0;
+
+    @Builder.Default
+    private int peakTasksInOneHour = 0;
+
+    @Builder.Default
+    private String busiestHour = "N/A";  // "14:00" (2 PM)
+
+    @Builder.Default
+    private String busiestDay = "N/A";  // "Monday"
+
+    // ═══════════════════════════════════════════════════════════
+    // ACTIVITY TRACKING
+    // ═══════════════════════════════════════════════════════════
+    @Builder.Default
+    private int tasksThisWeek = 0;
+
+    @Builder.Default
+    private int tasksThisMonth = 0;
+
+    @Builder.Default
+    private int tasksLastHour = 0;
+
+    // Internal tracking fields
+    private String lastCountDate;  // "2024-12-26" - for daily/weekly/monthly resets
+    private String lastHourTimestamp;  // For hourly counter reset
+
+    // ═══════════════════════════════════════════════════════════
+    // TRENDING & INSIGHTS
+    // ═══════════════════════════════════════════════════════════
+    @Builder.Default
+    private List<String> topTitles = new ArrayList<>();  // Top 5 most common titles
+
+    @Builder.Default
+    private Map<String, Integer> titleWordFrequency = new HashMap<>();  // Word cloud data
+
+    // ═══════════════════════════════════════════════════════════
+    // STREAKS & MILESTONES
+    // ═══════════════════════════════════════════════════════════
+    @Builder.Default
+    private int currentStreak = 0;  // Consecutive days with tasks
+
+    @Builder.Default
+    private int longestStreak = 0;
+
+    @Builder.Default
+    private String lastTaskDate = null;  // "2024-12-26"
+
+    // ═══════════════════════════════════════════════════════════
+    // VELOCITY METRICS
+    // ═══════════════════════════════════════════════════════════
+    @Builder.Default
+    private double tasksPerHourAverage = 0.0;
+
+    @Builder.Default
+    private int totalDaysActive = 0;  // Days with at least 1 task
+
+    // ═══════════════════════════════════════════════════════════
+    // RECENT ACTIVITY
+    // ═══════════════════════════════════════════════════════════
+    @Builder.Default
+    private List<RecentTask> recentTasks = new ArrayList<>();  // Last 10 tasks
+
+    // Helper class for recent tasks
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecentTask {
+        private String id;
+        private String title;
+        private String timestamp;
+    }
 }

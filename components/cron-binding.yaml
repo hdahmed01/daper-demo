@@ -1,0 +1,14 @@
+apiVersion: dapr.io/v2alpha1
+kind: Component
+metadata:
+  name: daily-reset-cron           # ← Définit l'endpoint
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+    - name: schedule
+      value: "@every 2m"
+    - name: direction
+      value: "input"                 # ← Input = Cron → App
+scopes:
+  - analytics-service

@@ -20,6 +20,13 @@ dapr run `
    -- java -jar task-service/target/task-service-0.0.1-SNAPSHOT.jar
 
 
+dapr run `
+   --app-id analytics-service `
+   --app-port 8083 `
+   --dapr-http-port 3502 `
+   --config "C:/Users/PC/Desktop/web/daper/TaskManagement/components/tracing.yaml" `
+   --resources-path "C:/Users/PC/Desktop/web/daper/TaskManagement/components" `
+   -- java -jar analytics-service/target/analytics-service-0.0.1-SNAPSHOT.jar
 
 docker run -d `
   --name jaeger `
