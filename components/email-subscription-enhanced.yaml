@@ -1,0 +1,47 @@
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: email-all-events-subscription
+spec:
+  pubsubname: pubsub
+  topic: task-created
+  routes:
+    default: /task-created
+  scopes:
+    - email-service
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: email-assignment-subscription
+spec:
+  pubsubname: pubsub
+  topic: task-assigned
+  routes:
+    default: /task-assigned
+  scopes:
+    - email-service
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: email-status-subscription
+spec:
+  pubsubname: pubsub
+  topic: task-status-changed
+  routes:
+    default: /task-status-changed
+  scopes:
+    - email-service
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: email-priority-subscription
+spec:
+  pubsubname: pubsub
+  topic: task-priority-changed
+  routes:
+    default: /task-priority-changed
+  scopes:
+    - email-service

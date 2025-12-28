@@ -1,125 +1,172 @@
 package tn.ahmed.analyticsservice;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
 
-/**
- * Enhanced Task Statistics Model
- * Stores comprehensive analytics about task creation and patterns
- */
-@Data
-@Builder
-@NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class TaskStats {
 
     // ═══════════════════════════════════════════════════════════
     // BASIC COUNTERS
     // ═══════════════════════════════════════════════════════════
-    private int totalTasks;
-    private int tasksToday;
-    private String lastUpdated;
-
-    // ═══════════════════════════════════════════════════════════
-    // TITLE ANALYSIS
-    // ═══════════════════════════════════════════════════════════
-    private Map<String, Integer> tasksByTitle;
-
-    // ═══════════════════════════════════════════════════════════
-    // TIME-BASED ANALYTICS
-    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("totalTasks")
     @Builder.Default
-    private Map<String, Integer> tasksByHour = new HashMap<>();  // "14" -> 25 tasks
+    private int totalTasks = 0;
 
+    @JsonProperty("completedTasks")
     @Builder.Default
-    private Map<String, Integer> tasksByDayOfWeek = new HashMap<>();  // "Monday" -> 120 tasks
+    private int completedTasks = 0;
 
+    @JsonProperty("completionRate")
     @Builder.Default
-    private Map<String, Integer> tasksByMonth = new HashMap<>();  // "2024-12" -> 450 tasks
+    private double completionRate = 0.0;
+
+    @JsonProperty("totalAssignments")
+    @Builder.Default
+    private int totalAssignments = 0;
 
     // ═══════════════════════════════════════════════════════════
-    // PERFORMANCE METRICS
+    // TIME-BASED TRACKING
     // ═══════════════════════════════════════════════════════════
+    @JsonProperty("tasksToday")
     @Builder.Default
-    private double averageTasksPerDay = 0.0;
+    private int tasksToday = 0;
 
-    @Builder.Default
-    private int peakTasksInOneHour = 0;
-
-    @Builder.Default
-    private String busiestHour = "N/A";  // "14:00" (2 PM)
-
-    @Builder.Default
-    private String busiestDay = "N/A";  // "Monday"
-
-    // ═══════════════════════════════════════════════════════════
-    // ACTIVITY TRACKING
-    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("tasksThisWeek")
     @Builder.Default
     private int tasksThisWeek = 0;
 
+    @JsonProperty("tasksThisMonth")
     @Builder.Default
     private int tasksThisMonth = 0;
 
+    @JsonProperty("tasksLastHour")
     @Builder.Default
     private int tasksLastHour = 0;
 
-    // Internal tracking fields
-    private String lastCountDate;  // "2024-12-26" - for daily/weekly/monthly resets
-    private String lastHourTimestamp;  // For hourly counter reset
+    @JsonProperty("lastUpdated")
+    private String lastUpdated;
+
+    @JsonProperty("lastCountDate")
+    private String lastCountDate;
+
+    @JsonProperty("lastTaskDate")
+    private String lastTaskDate;
+
+    @JsonProperty("lastHourTimestamp")
+    private String lastHourTimestamp;
+
+    // ═════════════════════════════════════════════════════════
+    // DISTRIBUTION MAPS
+    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("tasksByTitle")
+    @Builder.Default
+    private Map<String, Integer> tasksByTitle = Map.of();
+
+    @JsonProperty("tasksByHour")
+    @Builder.Default
+    private Map<String, Integer> tasksByHour = Map.of();
+
+    @JsonProperty("tasksByDayOfWeek")
+    @Builder.Default
+    private Map<String, Integer> tasksByDayOfWeek = Map.of();
+
+    @JsonProperty("tasksByMonth")
+    @Builder.Default
+    private Map<String, Integer> tasksByMonth = Map.of();
 
     // ═══════════════════════════════════════════════════════════
-    // TRENDING & INSIGHTS
+    // NEW: TEAM & USER METRICS
     // ═══════════════════════════════════════════════════════════
+    @JsonProperty("tasksByPriority")
     @Builder.Default
-    private List<String> topTitles = new ArrayList<>();  // Top 5 most common titles
+    private Map<String, Integer> tasksByPriority = Map.of();
 
+    @JsonProperty("tasksByTeam")
     @Builder.Default
-    private Map<String, Integer> titleWordFrequency = new HashMap<>();  // Word cloud data
+    private Map<String, Integer> tasksByTeam = Map.of();
 
-    // ═══════════════════════════════════════════════════════════
-    // STREAKS & MILESTONES
-    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("tasksByAssignee")
     @Builder.Default
-    private int currentStreak = 0;  // Consecutive days with tasks
+    private Map<String, Integer> tasksByAssignee = Map.of();
 
+    @JsonProperty("statusTransitions")
     @Builder.Default
-    private int longestStreak = 0;
-
-    @Builder.Default
-    private String lastTaskDate = null;  // "2024-12-26"
+    private Map<String, Integer> statusTransitions = Map.of();
 
     // ═══════════════════════════════════════════════════════════
-    // VELOCITY METRICS
+    // WORD CLOUD & TITLES
     // ═══════════════════════════════════════════════════════════
+    @JsonProperty("titleWordFrequency")
     @Builder.Default
-    private double tasksPerHourAverage = 0.0;
+    private Map<String, Integer> titleWordFrequency = Map.of();
 
+    @JsonProperty("topTitles")
     @Builder.Default
-    private int totalDaysActive = 0;  // Days with at least 1 task
+    private List<String> topTitles = List.of();
 
     // ═══════════════════════════════════════════════════════════
     // RECENT ACTIVITY
     // ═══════════════════════════════════════════════════════════
+    @JsonProperty("recentTasks")
     @Builder.Default
-    private List<RecentTask> recentTasks = new ArrayList<>();  // Last 10 tasks
+    private List<RecentTask> recentTasks = List.of();
 
-    // Helper class for recent tasks
-    @Data
-    @Builder
-    @NoArgsConstructor
+    @JsonProperty("completedTaskIds")
+    @Builder.Default
+    private List<String> completedTaskIds = List.of();
+
+    // ═══════════════════════════════════════════════════════════
+    // STREAKS & PERFORMANCE
+    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("currentStreak")
+    @Builder.Default
+    private int currentStreak = 0;
+
+    @JsonProperty("longestStreak")
+    @Builder.Default
+    private int longestStreak = 0;
+
+    @JsonProperty("totalDaysActive")
+    @Builder.Default
+    private int totalDaysActive = 0;
+
+    @JsonProperty("busiestHour")
+    private String busiestHour;
+
+    @JsonProperty("busiestDay")
+    private String busiestDay;
+
+    @JsonProperty("peakTasksInOneHour")
+    @Builder.Default
+    private int peakTasksInOneHour = 0;
+
+    @JsonProperty("averageTasksPerDay")
+    @Builder.Default
+    private double averageTasksPerDay = 0.0;
+
+    // ═══════════════════════════════════════════════════════════
+    // NESTED CLASS: Recent Task
+    // ═══════════════════════════════════════════════════════════
+    @Getter
+    @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
     public static class RecentTask {
+        @JsonProperty("id")
         private String id;
+
+        @JsonProperty("title")
         private String title;
+
+        @JsonProperty("timestamp")
         private String timestamp;
     }
 }

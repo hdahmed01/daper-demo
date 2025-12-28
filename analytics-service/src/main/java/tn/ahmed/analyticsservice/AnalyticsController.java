@@ -22,69 +22,62 @@ public class AnalyticsController {
     private final String STATE_STORE = "statestore";
     private final String STATS_KEY = "global-task-stats";
 
+    // ═══════════════════════════════════════════════════════════
+    // TASK CREATED EVENT (existing + enhancements)
+    // ═══════════════════════════════════════════════════════════
     @PostMapping(path = "/task-created")
     public void onTaskCreated(@RequestBody CloudEvent event) {
         System.out.println("📊 Analytics: Received task-created event");
-        System.out.println("   Event ID: " + event.getId());
-        System.out.println("   Source: " + event.getSource());
 
         try {
-            // Extract task data
             Map<String, Object> data = (Map<String, Object>) event.getData();
             String taskId = data.getOrDefault("id", "unknown").toString();
             String title = data.getOrDefault("title", "untitled").toString();
+            String priority = data.getOrDefault("priority", "MEDIUM").toString();
+            String teamId = data.getOrDefault("teamId", "unassigned").toString();
+            String assignedTo = data.getOrDefault("assignedTo", "unassigned").toString();
             LocalDateTime now = LocalDateTime.now();
 
-            System.out.println("   Task ID: " + taskId);
-            System.out.println("   Title: " + title);
-
-            // Get current statistics
             TaskStats stats = getStats();
-
-            // ═══════════════════════════════════════════════════════════
-            // UPDATE ALL STATISTICS
-            // ═══════════════════════════════════════════════════════════
 
             // Basic counters
             stats.setTotalTasks(stats.getTotalTasks() + 1);
             stats.setLastUpdated(now.toString());
 
-            // Title distribution
-            Map<String, Integer> tasksByTitle = stats.getTasksByTitle();
-            if (tasksByTitle == null) tasksByTitle = new HashMap<>();
-            tasksByTitle.put(title, tasksByTitle.getOrDefault(title, 0) + 1);
-            stats.setTasksByTitle(tasksByTitle);
+            // NEW: Track by priority
+            updatePriorityStats(stats, priority);
 
-            // Time-based analytics
+            // NEW: Track by team
+            updateTeamStats(stats, teamId);
+
+            // NEW: Track by assignee
+            updateAssigneeStats(stats, assignedTo);
+
+            // Existing: Time-based analytics
             updateTimeBasedStats(stats, now);
 
-            // Word frequency for word cloud
+            // Existing: Word frequency
             updateWordFrequency(stats, title);
 
-            // Activity tracking (with proper date checking)
+            // Existing: Activity tracking
             updateActivityTracking(stats, now);
 
-            // Streaks
+            // Existing: Streaks
             updateStreaks(stats, now);
 
-            // Recent tasks (keep last 10)
+            // Existing: Recent tasks
             updateRecentTasks(stats, taskId, title, now);
 
-            // Performance metrics
+            // Existing: Performance metrics
             updatePerformanceMetrics(stats);
 
-            // Top titles (top 5)
+            // Existing: Top titles
             updateTopTitles(stats);
 
-            // Save updated statistics
+            // Save
             client.saveState(STATE_STORE, STATS_KEY, stats).block();
 
-            System.out.println("✅ Analytics updated successfully!");
-            System.out.println("   Total: " + stats.getTotalTasks());
-            System.out.println("   Today: " + stats.getTasksToday());
-            System.out.println("   This Week: " + stats.getTasksThisWeek());
-            System.out.println("   Busiest Hour: " + stats.getBusiestHour());
-            System.out.println("   Current Streak: " + stats.getCurrentStreak() + " days");
+            System.out.println("✅ Analytics updated (task created)");
 
         } catch (Exception e) {
             System.err.println("❌ Error processing analytics: " + e.getMessage());
@@ -92,32 +85,151 @@ public class AnalyticsController {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // HELPER METHODS FOR STATISTICS UPDATES
-    // ═══════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
+    // TASK STATUS CHANGED EVENT (NEW)
+    // ═══════════════════════════════════════════════════════════
+    @PostMapping(path = "/task-status-changed")
+    public void onTaskStatusChanged(@RequestBody CloudEvent event) {
+        System.out.println("📊 Analytics: Received task-status-changed event");
+
+        try {
+            Map<String, Object> data = (Map<String, Object>) event.getData();
+            String taskId = data.getOrDefault("taskId", "unknown").toString();
+            String oldStatus = data.getOrDefault("oldStatus", "OPEN").toString();
+            String newStatus = data.getOrDefault("newStatus", "OPEN").toString();
+            LocalDateTime now = LocalDateTime.now();
+
+            TaskStats stats = getStats();
+
+            // Track status transitions
+            updateStatusTransitions(stats, oldStatus, newStatus);
+
+            // Track completion rate
+            if ("COMPLETED".equals(newStatus)) {
+                stats.setCompletedTasks(stats.getCompletedTasks() + 1);
+
+                // Calculate completion rate
+                double completionRate = (double) stats.getCompletedTasks() / stats.getTotalTasks() * 100;
+                stats.setCompletionRate(completionRate);
+            }
+
+            // Track cycle time (OPEN → COMPLETED)
+            if ("COMPLETED".equals(newStatus)) {
+                updateCycleTime(stats, taskId);
+            }
+
+            stats.setLastUpdated(now.toString());
+            client.saveState(STATE_STORE, STATS_KEY, stats).block();
+
+            System.out.println("✅ Analytics updated (status changed)");
+
+        } catch (Exception e) {
+            System.err.println("❌ Error processing status change: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TASK ASSIGNED EVENT (NEW)
+    // ═══════════════════════════════════════════════════════════
+    @PostMapping(path = "/task-assigned")
+    public void onTaskAssigned(@RequestBody CloudEvent event) {
+        System.out.println("📊 Analytics: Received task-assigned event");
+
+        try {
+            Map<String, Object> data = (Map<String, Object>) event.getData();
+            String taskId = data.getOrDefault("taskId", "unknown").toString();
+            String newAssignee = data.getOrDefault("newAssignee", "unassigned").toString();
+            LocalDateTime now = LocalDateTime.now();
+
+            TaskStats stats = getStats();
+
+            // Update assignee stats
+            updateAssigneeStats(stats, newAssignee);
+
+            // Track assignment changes
+            stats.setTotalAssignments(stats.getTotalAssignments() + 1);
+
+            stats.setLastUpdated(now.toString());
+            client.saveState(STATE_STORE, STATS_KEY, stats).block();
+
+            System.out.println("✅ Analytics updated (task assigned)");
+
+        } catch (Exception e) {
+            System.err.println("❌ Error processing assignment: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // NEW HELPER METHODS
+    // ═══════════════════════════════════════════════════════════
+
+    private void updatePriorityStats(TaskStats stats, String priority) {
+        Map<String, Integer> priorityMap = stats.getTasksByPriority();
+        if (priorityMap == null) priorityMap = new HashMap<>();
+        priorityMap.put(priority, priorityMap.getOrDefault(priority, 0) + 1);
+        stats.setTasksByPriority(priorityMap);
+    }
+
+    private void updateTeamStats(TaskStats stats, String teamId) {
+        Map<String, Integer> teamMap = stats.getTasksByTeam();
+        if (teamMap == null) teamMap = new HashMap<>();
+        teamMap.put(teamId, teamMap.getOrDefault(teamId, 0) + 1);
+        stats.setTasksByTeam(teamMap);
+    }
+
+    private void updateAssigneeStats(TaskStats stats, String assignee) {
+        Map<String, Integer> assigneeMap = stats.getTasksByAssignee();
+        if (assigneeMap == null) assigneeMap = new HashMap<>();
+        assigneeMap.put(assignee, assigneeMap.getOrDefault(assignee, 0) + 1);
+        stats.setTasksByAssignee(assigneeMap);
+    }
+
+    private void updateStatusTransitions(TaskStats stats, String oldStatus, String newStatus) {
+        Map<String, Integer> transitionsMap = stats.getStatusTransitions();
+        if (transitionsMap == null) transitionsMap = new HashMap<>();
+
+        String transition = oldStatus + " → " + newStatus;
+        transitionsMap.put(transition, transitionsMap.getOrDefault(transition, 0) + 1);
+        stats.setStatusTransitions(transitionsMap);
+    }
+
+    private void updateCycleTime(TaskStats stats, String taskId) {
+        // In production, would calculate actual time from task creation to completion
+        // For now, just track that we completed a task
+        stats.setCompletedTaskIds(
+                stats.getCompletedTaskIds() == null ?
+                        new ArrayList<>(List.of(taskId)) :
+                        new ArrayList<>(stats.getCompletedTaskIds())
+        );
+        if (!stats.getCompletedTaskIds().contains(taskId)) {
+            stats.getCompletedTaskIds().add(taskId);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // EXISTING HELPER METHODS (from original)
+    // ═══════════════════════════════════════════════════════════
 
     private void updateTimeBasedStats(TaskStats stats, LocalDateTime now) {
-        // Hour of day (0-23)
         String hour = String.valueOf(now.getHour());
         stats.getTasksByHour().merge(hour, 1, Integer::sum);
 
-        // Day of week
         String dayOfWeek = now.getDayOfWeek().toString();
         stats.getTasksByDayOfWeek().merge(dayOfWeek, 1, Integer::sum);
 
-        // Month
         String month = now.format(DateTimeFormatter.ofPattern("yyyy-MM"));
         stats.getTasksByMonth().merge(month, 1, Integer::sum);
     }
 
     private void updateWordFrequency(TaskStats stats, String title) {
-        // Split title into words and count frequency
         String[] words = title.toLowerCase()
                 .replaceAll("[^a-z0-9\\s]", "")
                 .split("\\s+");
 
         for (String word : words) {
-            if (word.length() > 2) { // Ignore very short words
+            if (word.length() > 2) {
                 stats.getTitleWordFrequency().merge(word, 1, Integer::sum);
             }
         }
@@ -127,25 +239,20 @@ public class AnalyticsController {
         LocalDate today = now.toLocalDate();
         String todayStr = today.toString();
 
-        // Initialize tracking date if null
         if (stats.getLastCountDate() == null) {
             stats.setLastCountDate(todayStr);
             stats.setTasksToday(1);
             stats.setTasksThisWeek(1);
             stats.setTasksThisMonth(1);
-            stats.setTasksLastHour(1);
-            stats.setLastHourTimestamp(now.toString());
             return;
         }
 
         LocalDate lastCountDate = LocalDate.parse(stats.getLastCountDate());
 
-        // Check if it's a new day - reset daily counters
         if (!todayStr.equals(stats.getLastCountDate())) {
             stats.setTasksToday(1);
             stats.setLastCountDate(todayStr);
 
-            // Check if it's a new week
             WeekFields weekFields = WeekFields.of(Locale.getDefault());
             int currentWeek = today.get(weekFields.weekOfWeekBasedYear());
             int lastWeek = lastCountDate.get(weekFields.weekOfWeekBasedYear());
@@ -156,33 +263,15 @@ public class AnalyticsController {
                 stats.setTasksThisWeek(stats.getTasksThisWeek() + 1);
             }
 
-            // Check if it's a new month
             if (today.getMonth() != lastCountDate.getMonth() || today.getYear() != lastCountDate.getYear()) {
                 stats.setTasksThisMonth(1);
             } else {
                 stats.setTasksThisMonth(stats.getTasksThisMonth() + 1);
             }
         } else {
-            // Same day - just increment
             stats.setTasksToday(stats.getTasksToday() + 1);
             stats.setTasksThisWeek(stats.getTasksThisWeek() + 1);
             stats.setTasksThisMonth(stats.getTasksThisMonth() + 1);
-        }
-
-        // Update last hour counter
-        if (stats.getLastHourTimestamp() != null) {
-            LocalDateTime lastHourTime = LocalDateTime.parse(stats.getLastHourTimestamp());
-            long minutesSinceLastCount = ChronoUnit.MINUTES.between(lastHourTime, now);
-
-            if (minutesSinceLastCount >= 60) {
-                stats.setTasksLastHour(1);
-                stats.setLastHourTimestamp(now.toString());
-            } else {
-                stats.setTasksLastHour(stats.getTasksLastHour() + 1);
-            }
-        } else {
-            stats.setTasksLastHour(1);
-            stats.setLastHourTimestamp(now.toString());
         }
     }
 
@@ -191,24 +280,20 @@ public class AnalyticsController {
         String lastDate = stats.getLastTaskDate();
 
         if (lastDate == null) {
-            // First task ever
             stats.setCurrentStreak(1);
             stats.setLongestStreak(1);
             stats.setTotalDaysActive(1);
         } else if (!lastDate.equals(today)) {
-            // Different day
             LocalDate lastDateTime = LocalDate.parse(lastDate);
             long daysBetween = ChronoUnit.DAYS.between(lastDateTime, now.toLocalDate());
 
             if (daysBetween == 1) {
-                // Consecutive day - increment streak
                 stats.setCurrentStreak(stats.getCurrentStreak() + 1);
                 stats.setTotalDaysActive(stats.getTotalDaysActive() + 1);
                 if (stats.getCurrentStreak() > stats.getLongestStreak()) {
                     stats.setLongestStreak(stats.getCurrentStreak());
                 }
             } else if (daysBetween > 1) {
-                // Streak broken - reset to 1
                 stats.setCurrentStreak(1);
                 stats.setTotalDaysActive(stats.getTotalDaysActive() + 1);
             }
@@ -223,14 +308,12 @@ public class AnalyticsController {
             recentTasks = new ArrayList<>();
         }
 
-        // Add new task
         recentTasks.add(0, TaskStats.RecentTask.builder()
                 .id(taskId)
                 .title(title)
                 .timestamp(now.toString())
                 .build());
 
-        // Keep only last 10
         if (recentTasks.size() > 10) {
             recentTasks = recentTasks.subList(0, 10);
         }
@@ -239,7 +322,6 @@ public class AnalyticsController {
     }
 
     private void updatePerformanceMetrics(TaskStats stats) {
-        // Find busiest hour
         if (!stats.getTasksByHour().isEmpty()) {
             var busiestHourEntry = stats.getTasksByHour().entrySet().stream()
                     .max(Map.Entry.comparingByValue())
@@ -251,7 +333,6 @@ public class AnalyticsController {
             }
         }
 
-        // Find busiest day
         if (!stats.getTasksByDayOfWeek().isEmpty()) {
             var busiestDayEntry = stats.getTasksByDayOfWeek().entrySet().stream()
                     .max(Map.Entry.comparingByValue())
@@ -262,7 +343,6 @@ public class AnalyticsController {
             }
         }
 
-        // Calculate averages
         if (stats.getTotalDaysActive() > 0) {
             stats.setAverageTasksPerDay(
                     (double) stats.getTotalTasks() / stats.getTotalDaysActive()
@@ -284,14 +364,36 @@ public class AnalyticsController {
         stats.setTopTitles(topTitles);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // REST API ENDPOINTS
-    // ═══════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
+    // REST API ENDPOINTS (existing + new)
+    // ═══════════════════════════════════════════════════════════
 
     @GetMapping("/stats")
     public TaskStats getStatistics() {
-        System.out.println("📈 GET /stats - Fetching current statistics");
         return getStats();
+    }
+
+    @GetMapping("/stats/team/{teamId}")
+    public Map<String, Object> getTeamStats(@PathVariable String teamId) {
+        TaskStats stats = getStats();
+        Map<String, Object> teamStats = new HashMap<>();
+
+        teamStats.put("teamId", teamId);
+        teamStats.put("totalTasks", stats.getTasksByTeam().getOrDefault(teamId, 0));
+        teamStats.put("completionRate", stats.getCompletionRate());
+
+        return teamStats;
+    }
+
+    @GetMapping("/stats/assignee/{assignee}")
+    public Map<String, Object> getAssigneeStats(@PathVariable String assignee) {
+        TaskStats stats = getStats();
+        Map<String, Object> assigneeStats = new HashMap<>();
+
+        assigneeStats.put("assignee", assignee);
+        assigneeStats.put("totalTasks", stats.getTasksByAssignee().getOrDefault(assignee, 0));
+
+        return assigneeStats;
     }
 
     @GetMapping("/stats/summary")
@@ -300,12 +402,11 @@ public class AnalyticsController {
         Map<String, Object> summary = new HashMap<>();
 
         summary.put("totalTasks", stats.getTotalTasks());
+        summary.put("completedTasks", stats.getCompletedTasks());
+        summary.put("completionRate", String.format("%.1f%%", stats.getCompletionRate()));
         summary.put("tasksToday", stats.getTasksToday());
-        summary.put("tasksThisWeek", stats.getTasksThisWeek());
-        summary.put("currentStreak", stats.getCurrentStreak() + " days");
+        summary.put("currentStreak", stats.getCurrentStreak());
         summary.put("busiestHour", stats.getBusiestHour());
-        summary.put("busiestDay", stats.getBusiestDay());
-        summary.put("topTitles", stats.getTopTitles());
 
         return summary;
     }
@@ -318,6 +419,9 @@ public class AnalyticsController {
         trends.put("tasksByHour", stats.getTasksByHour());
         trends.put("tasksByDayOfWeek", stats.getTasksByDayOfWeek());
         trends.put("tasksByMonth", stats.getTasksByMonth());
+        trends.put("tasksByPriority", stats.getTasksByPriority());
+        trends.put("tasksByTeam", stats.getTasksByTeam());
+        trends.put("statusTransitions", stats.getStatusTransitions());
         trends.put("wordCloud", stats.getTitleWordFrequency());
 
         return trends;
@@ -328,84 +432,32 @@ public class AnalyticsController {
         return getStats().getRecentTasks();
     }
 
-    @PostMapping("/reset-daily")
-    public String resetDailyStats() {
-        System.out.println("🔄 POST /reset-daily - Resetting daily statistics");
-
-        try {
-            TaskStats stats = getStats();
-            stats.setTasksToday(0);
-            stats.setTasksLastHour(0);
-            stats.setLastUpdated(LocalDateTime.now().toString());
-
-            client.saveState(STATE_STORE, STATS_KEY, stats).block();
-            System.out.println("✅ Daily stats reset successfully");
-            return "Daily stats reset successfully";
-
-        } catch (Exception e) {
-            System.err.println("❌ Error resetting stats: " + e.getMessage());
-            return "Error: " + e.getMessage();
-        }
-    }
-
-    @PostMapping("/reset-all")
-    public String resetAllStats() {
-        System.out.println("🔄 POST /reset-all - Resetting ALL statistics");
-
-        try {
-            TaskStats freshStats = TaskStats.builder()
-                    .totalTasks(0)
-                    .tasksToday(0)
-                    .tasksThisWeek(0)
-                    .tasksThisMonth(0)
-                    .tasksLastHour(0)
-                    .lastUpdated(LocalDateTime.now().toString())
-                    .tasksByTitle(new HashMap<>())
-                    .tasksByHour(new HashMap<>())
-                    .tasksByDayOfWeek(new HashMap<>())
-                    .tasksByMonth(new HashMap<>())
-                    .titleWordFrequency(new HashMap<>())
-                    .recentTasks(new ArrayList<>())
-                    .topTitles(new ArrayList<>())
-                    .currentStreak(0)
-                    .longestStreak(0)
-                    .totalDaysActive(0)
-                    .busiestHour("N/A")
-                    .busiestDay("N/A")
-                    .build();
-
-            client.saveState(STATE_STORE, STATS_KEY, freshStats).block();
-            System.out.println("✅ All stats reset successfully");
-            return "All statistics reset successfully";
-
-        } catch (Exception e) {
-            System.err.println("❌ Error resetting stats: " + e.getMessage());
-            return "Error: " + e.getMessage();
-        }
-    }
-
     private TaskStats getStats() {
         var state = client.getState(STATE_STORE, STATS_KEY, TaskStats.class).block();
 
         if (state == null || state.getValue() == null) {
-            System.out.println("   No existing stats found - initializing defaults");
             String today = LocalDate.now().toString();
             return TaskStats.builder()
                     .totalTasks(0)
+                    .completedTasks(0)
+                    .completionRate(0.0)
                     .tasksToday(0)
                     .tasksThisWeek(0)
-                    .tasksThisMonth(0)
-                    .tasksLastHour(0)
                     .lastUpdated(LocalDateTime.now().toString())
                     .lastCountDate(today)
-                    .lastHourTimestamp(LocalDateTime.now().toString())
                     .tasksByTitle(new HashMap<>())
                     .tasksByHour(new HashMap<>())
                     .tasksByDayOfWeek(new HashMap<>())
                     .tasksByMonth(new HashMap<>())
+                    .tasksByPriority(new HashMap<>())
+                    .tasksByTeam(new HashMap<>())
+                    .tasksByAssignee(new HashMap<>())
+                    .statusTransitions(new HashMap<>())
                     .titleWordFrequency(new HashMap<>())
                     .recentTasks(new ArrayList<>())
                     .topTitles(new ArrayList<>())
+                    .completedTaskIds(new ArrayList<>())
+                    .totalAssignments(0)
                     .currentStreak(0)
                     .longestStreak(0)
                     .totalDaysActive(0)
