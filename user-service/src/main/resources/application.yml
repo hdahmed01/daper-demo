@@ -1,15 +1,6 @@
 spring:
   application:
     name: user-service
-
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8090/realms/taskmanagement
-          jwk-set-uri: http://localhost:8090/realms/taskmanagement/protocol/openid-connect/certs
-
-
   mongodb:
     host: localhost
     port: 27017
@@ -17,20 +8,29 @@ spring:
     username: admin
     password: password
     authentication-database: admin
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8090/realms/taskmanagement
+          jwk-set-uri: http://localhost:8090/realms/taskmanagement/protocol/openid-connect/certs
+  task:
+    scheduling:
+      pool:
+        size: 1
 
 server:
   port: 8085
 
-keycloak:
-  realm: taskmanagement
-  auth-server-url: http://localhost:8090
-  resource: task-management-services
-  credentials:
-    secret: YOUR_CLIENT_SECRET
-  use-resource-role-mappings: true
-  bearer-only: true
 
-logging:
-  level:
-    org.springframework.security: DEBUG
-    org.keycloak: DEBUG
+
+
+keycloak:
+  server-url: http://localhost:8090
+  realm: master        # usually "master" for admin login
+  username: admin      # Keycloak admin username
+  password: admin      # Keycloak admin password
+  client-id: admin-cli
+  grant-type: password
+
+

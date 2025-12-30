@@ -2,6 +2,8 @@ package tn.ahmed.taskservice.service;
 
 import io.dapr.client.DaprClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import tn.ahmed.taskservice.entities.Priority;
 import tn.ahmed.taskservice.entities.Task;
@@ -21,7 +23,14 @@ public class TaskWorkflowService {
     private TaskService taskService;
 
     private final String PUBSUB_NAME = "pubsub";
-
+    private String getCurrentUserId() {
+        JwtAuthenticationToken authentication =
+                (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new IllegalStateException("No authenticated user found");
+        }
+        return authentication.getToken().getSubject(); // "sub" claim = Keycloak user ID
+    }
     private static final Map<TaskStatus, TaskStatus[]> VALID_TRANSITIONS = Map.of(
             TaskStatus.OPEN, new TaskStatus[]{TaskStatus.IN_PROGRESS, TaskStatus.CANCELLED},
             TaskStatus.IN_PROGRESS, new TaskStatus[]{TaskStatus.IN_REVIEW, TaskStatus.OPEN, TaskStatus.CANCELLED},
@@ -30,9 +39,10 @@ public class TaskWorkflowService {
             TaskStatus.CANCELLED, new TaskStatus[]{TaskStatus.OPEN}
     );
 
-    public Task transitionStatus(String taskId, TaskStatus newStatus, String userId) throws Exception {
+    public Task transitionStatus(String taskId, TaskStatus newStatus) throws Exception {
         Task task = taskService.getTask(taskId);
         TaskStatus oldStatus = task.getStatus();
+        String userId = getCurrentUserId();
 
         if (!isValidTransition(oldStatus, newStatus)) {
             throw new IllegalStateException(
@@ -41,7 +51,7 @@ public class TaskWorkflowService {
         }
 
         task.setStatus(newStatus);
-        task = taskService.updateTask(taskId, task, userId);
+        task = taskService.updateTask(taskId, task);
 
         publishStatusChangeEvent(task, oldStatus, newStatus, userId);
 
@@ -59,7 +69,7 @@ public class TaskWorkflowService {
             task.setStatus(TaskStatus.IN_PROGRESS);
         }
 
-        task = taskService.updateTask(taskId, task, assignedBy);
+        task = taskService.updateTask(taskId, task);
 
         publishAssignmentEvent(task, oldAssignee, assignedTo, assignedBy);
 
@@ -67,12 +77,13 @@ public class TaskWorkflowService {
         return task;
     }
 
-    public Task updatePriority(String taskId, Priority newPriority, String userId) throws Exception {
+    public Task updatePriority(String taskId, Priority newPriority) throws Exception {
         Task task = taskService.getTask(taskId);
         Priority oldPriority = task.getPriority();
+        String userId = getCurrentUserId();
 
         task.setPriority(newPriority);
-        task = taskService.updateTask(taskId, task, userId);
+        task = taskService.updateTask(taskId, task);
 
         if (newPriority == Priority.URGENT || newPriority == Priority.HIGH) {
             publishPriorityChangeEvent(task, oldPriority, newPriority, userId);

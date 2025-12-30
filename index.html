@@ -2,142 +2,133 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Task Management</title>
+    <title>Task Management Frontend</title>
+
+    <!-- Keycloak JS -->
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@22.0.5/dist/keycloak.min.js"></script>
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
-        input, select, button { margin: 5px; padding: 5px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        input, select, button {
+            margin: 5px 0;
+            padding: 6px;
+            width: 250px;
+        }
+        .box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Task Management</h1>
 
-    <h2>Create Task</h2>
-    <input type="text" id="title" placeholder="Title">
-    <input type="text" id="description" placeholder="Description">
-    <input type="text" id="assignedTo" placeholder="Assigned To">
-    <input type="text" id="teamId" placeholder="Team ID">
-    <select id="priority">
-        <option value="LOW">LOW</option>
-        <option value="MEDIUM" selected>MEDIUM</option>
-        <option value="HIGH">HIGH</option>
-        <option value="URGENT">URGENT</option>
-    </select>
-    <button onclick="createTask()">Create Task</button>
+<h1>🧩 Task Management</h1>
 
-    <h2>Tasks</h2>
-    <table id="tasksTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>Assigned To</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+<div class="box">
+    <h3>🔐 Authentication</h3>
+    <button onclick="login()">Login</button>
+    <button onclick="logout()">Logout</button>
+    <p id="userInfo"></p>
+</div>
 
-    <script>
-        const API_URL = 'http://localhost:8081/tasks';
-        const USER_ID = 'system'; // Change if needed
+<div class="box">
+    <h3>➕ Create Task</h3>
+    <input id="title" placeholder="Title"><br>
+    <input id="description" placeholder="Description"><br>
+    <input id="teamId" placeholder="Team ID"><br>
+    <button onclick="createTask()">Create</button>
+</div>
 
-        async function fetchTasks() {
-            const tbody = document.querySelector('#tasksTable tbody');
-            tbody.innerHTML = '';
-            // For demonstration, we fetch all tasks by status OPEN
-            const response = await fetch(`${API_URL}/status/OPEN`);
-            const tasks = await response.json();
-            tasks.forEach(task => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${task.id}</td>
-                    <td>${task.title}</td>
-                    <td>${task.description}</td>
-                    <td>${task.assignedTo || ''}</td>
-                    <td>${task.status}</td>
-                    <td>${task.priority}</td>
-                    <td>
-                        <button onclick="deleteTask('${task.id}')">Delete</button>
-                        <button onclick="assignTaskPrompt('${task.id}')">Assign</button>
-                        <button onclick="updateStatusPrompt('${task.id}')">Update Status</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+<div class="box">
+    <h3>👤 Assign Task</h3>
+    <input id="taskId" placeholder="Task ID"><br>
+    <input id="assignedTo" placeholder="User Email"><br>
+    <button onclick="assignTask()">Assign</button>
+</div>
 
-        async function createTask() {
-            const task = {
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                assignedTo: document.getElementById('assignedTo').value,
-                teamId: document.getElementById('teamId').value,
-                priority: document.getElementById('priority').value
-            };
+<div class="box">
+    <h3>📋 All Tasks</h3>
+    <button onclick="loadTasks()">Refresh</button>
+    <pre id="tasks"></pre>
+</div>
 
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-User-Id': USER_ID
-                },
-                body: JSON.stringify(task)
-            });
+<script>
+    const keycloak = new Keycloak({
+        url: "http://localhost:8090",
+        realm: "taskmanagement",
+        clientId: "task-management-web"
+    });
 
-            if (response.ok) {
-                alert('Task created!');
-                fetchTasks();
-            } else {
-                alert('Error creating task');
+    function login() {
+        keycloak.init({ onLoad: "login-required" }).then(auth => {
+            if (auth) {
+                document.getElementById("userInfo").innerText =
+                    "Logged in as: " + keycloak.tokenParsed.preferred_username;
             }
-        }
+        });
+    }
 
-        async function deleteTask(id) {
-            if (!confirm('Are you sure you want to delete this task?')) return;
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'DELETE',
-                headers: { 'X-User-Id': USER_ID }
-            });
-            if (response.ok) {
-                alert('Task deleted');
-                fetchTasks();
+    function logout() {
+        keycloak.logout();
+    }
+
+    function authHeader() {
+        return {
+            "Authorization": "Bearer " + keycloak.token,
+            "Content-Type": "application/json"
+        };
+    }
+
+    // 🔹 CREATE TASK
+    function createTask() {
+        fetch("http://localhost:8081/tasks", {
+            method: "POST",
+            headers: authHeader(),
+            body: JSON.stringify({
+                title: document.getElementById("title").value,
+                description: document.getElementById("description").value,
+                teamId: document.getElementById("teamId").value,
+                createdBy: keycloak.tokenParsed.email
+            })
+        })
+        .then(res => res.json())
+        .then(data => alert("Task Created: " + data.id))
+        .catch(err => alert("Error creating task"));
+    }
+
+    // 🔹 ASSIGN TASK
+    function assignTask() {
+        const taskId = document.getElementById("taskId").value;
+        const assignedTo = document.getElementById("assignedTo").value;
+
+        fetch(`http://localhost:8081/tasks/${taskId}/assign?assignedTo=${assignedTo}`, {
+            method: "PATCH",
+            headers: {
+                "Authorization": "Bearer " + keycloak.token,
+                "X-User-Id": keycloak.tokenParsed.email
             }
-        }
+        })
+        .then(res => res.json())
+        .then(data => alert("Assigned to " + data.assignedTo))
+        .catch(err => alert("Assignment failed"));
+    }
 
-        async function assignTaskPrompt(id) {
-            const assignedTo = prompt('Enter user to assign task:');
-            if (!assignedTo) return;
-            const response = await fetch(`${API_URL}/${id}/assign?assignedTo=${assignedTo}`, {
-                method: 'PATCH',
-                headers: { 'X-User-Id': USER_ID }
-            });
-            if (response.ok) {
-                alert('Task assigned!');
-                fetchTasks();
-            }
-        }
+    // 🔹 LOAD TASKS
+    function loadTasks() {
+        fetch("http://localhost:8081/tasks", {
+            headers: authHeader()
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("tasks").innerText =
+                JSON.stringify(data, null, 2);
+        });
+    }
+</script>
 
-        async function updateStatusPrompt(id) {
-            const status = prompt('Enter new status (OPEN, IN_PROGRESS, IN_REVIEW, COMPLETED, CANCELLED):');
-            if (!status) return;
-            const response = await fetch(`${API_URL}/${id}/status?status=${status}`, {
-                method: 'PATCH',
-                headers: { 'X-User-Id': USER_ID }
-            });
-            if (response.ok) {
-                alert('Status updated!');
-                fetchTasks();
-            }
-        }
-
-        // Load tasks on page load
-        fetchTasks();
-    </script>
 </body>
 </html>

@@ -24,10 +24,9 @@ public class TaskController {
     // CREATE
     @PostMapping
     public ResponseEntity<Task> createTask(
-            @RequestBody Task task,
-            @RequestHeader(value = "X-User-Id", defaultValue = "system") String userId) {
+            @RequestBody Task task ) {
         try {
-            Task created = taskService.createTask(task, userId);
+            Task created = taskService.createTask(task);
             return ResponseEntity.ok(created);
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
@@ -61,10 +60,9 @@ public class TaskController {
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTask(
             @PathVariable String id,
-            @RequestBody Task task,
-            @RequestHeader(value = "X-User-Id", defaultValue = "system") String userId) {
+            @RequestBody Task task) {
         try {
-            Task updated = taskService.updateTask(id, task, userId);
+            Task updated = taskService.updateTask(id, task);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
@@ -121,10 +119,9 @@ public class TaskController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<Task> updateStatus(
             @PathVariable String id,
-            @RequestParam TaskStatus status,
-            @RequestHeader(value = "X-User-Id", defaultValue = "system") String userId) {
+            @RequestParam TaskStatus status) {
         try {
-            Task updated = workflowService.transitionStatus(id, status, userId);
+            Task updated = workflowService.transitionStatus(id, status);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
@@ -155,10 +152,9 @@ public class TaskController {
     @PatchMapping("/{id}/priority")
     public ResponseEntity<Task> updatePriority(
             @PathVariable String id,
-            @RequestParam Priority priority,
-            @RequestHeader(value = "X-User-Id", defaultValue = "system") String userId) throws Exception {
+            @RequestParam Priority priority) throws Exception {
         try {
-            Task updated = workflowService.updatePriority(id, priority, userId);
+            Task updated = workflowService.updatePriority(id, priority);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

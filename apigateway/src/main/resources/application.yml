@@ -1,0 +1,113 @@
+#server:
+#  port: 8080
+#
+#spring:
+#  cloud:
+#    gateway:
+#      routes:
+#        - id: task-service
+#          uri: http://localhost:8081   # Task Service URL
+#          predicates:
+#            - Path=/tasks/**           # Forward all /tasks/** requests
+#          filters:
+#            - TokenRelay=              # Forward JWT to Task Service
+#
+#        - id: user-service
+#          uri: http://localhost:8082   # User Service URL
+#          predicates:
+#            - Path=/users/**           # Forward all /users/** requests
+#          filters:
+#            - TokenRelay=
+#  security:
+#    oauth2:
+#          resourceserver:
+#            jwt:
+#              issuer-uri: http://localhost:8090/realms/taskmanagement
+#
+
+spring:
+  application:
+    name: api-gateway
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8090/realms/taskmanagement
+          jwk-set-uri: http://localhost:8090/realms/taskmanagement/protocol/openid-connect/certs
+
+  cloud:
+    gateway:
+      routes:
+        # Task Service Routes
+        - id: task-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/tasks/**
+          filters:
+            - RewritePath=/api/tasks/(?.*), /tasks/${segment}
+            - name: CircuitBreaker
+              args:
+                name: taskServiceCircuitBreaker
+                fallbackUri: forward:/fallback/tasks
+
+        # User Service Routes
+        - id: user-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - RewritePath=/api/users/(?.*), /users/${segment}
+
+        # Analytics Service Routes
+        - id: analytics-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/analytics/**
+          filters:
+            - RewritePath=/api/analytics/(?.*), /stats/${segment}
+
+        # Auth Routes (no JWT required)
+        - id: auth-service
+          uri: http://localhost:8090
+          predicates:
+            - Path=/auth/**
+          filters:
+            - RewritePath=/auth/(?.*), /realms/taskmanagement/protocol/openid-connect/${segment}
+
+      # Global CORS configuration
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            exposedHeaders:
+              - Authorization
+
+      # Default filters for all routes
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10
+            redis-rate-limiter.burstCapacity: 20
+            redis-rate-limiter.requestedTokens: 1
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG

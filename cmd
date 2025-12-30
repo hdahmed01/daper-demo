@@ -38,6 +38,14 @@ dapr run `
    -- java -jar email-service/target/email-service-0.0.1-SNAPSHOT.jar
 
 
+dapr run `
+   --app-id user-service `
+   --app-port 8085 `
+   --dapr-http-port 3504 `
+   --config "C:/Users/PC/Desktop/web/daper/TaskManagement/components/tracing.yaml" `
+   --resources-path "C:/Users/PC/Desktop/web/daper/TaskManagement/components" `
+   -- java -jar user-service/target/user-service-0.0.1-SNAPSHOT.jar
+
 /jaeger
 docker run -d `
   --name jaeger `
@@ -72,3 +80,9 @@ run -d \
   -e KEYCLOAK_ADMIN_PASSWORD=admin \
   quay.io/keycloak/keycloak:23.0.0 \
   start-dev
+
+
+
+
+
+  curl -X POST   http://localhost:8090/realms/taskmanagement/protocol/openid-connect/token   -H "Content-Type: application/x-www-form-urlencoded"   -d "grant_type=password"   -d "client_id=task-management-web"   -d "username=admin"   -d "password=admin"

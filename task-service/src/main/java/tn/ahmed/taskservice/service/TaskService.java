@@ -3,6 +3,8 @@ package tn.ahmed.taskservice.service;
 
 import io.dapr.client.DaprClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import tn.ahmed.taskservice.entities.Priority;
 import tn.ahmed.taskservice.entities.Task;
@@ -27,9 +29,19 @@ public class TaskService {
 
     private final String PUBSUB_NAME = "pubsub";
 
+    private String getCurrentUserId() {
+        JwtAuthenticationToken authentication =
+                (JwtAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new IllegalStateException("No authenticated user found");
+        }
+        return authentication.getToken().getSubject(); // "sub" claim = Keycloak user ID
+    }
+
     // CREATE TASK
-    public Task createTask(Task task, String userId) {
+    public Task createTask(Task task) {
         // Set metadata
+        String userId = getCurrentUserId();
         task.setId(UUID.randomUUID().toString());
         task.setCreatedBy(userId);
         task.setCreatedAt(LocalDateTime.now().toString());
@@ -78,9 +90,10 @@ public class TaskService {
     }
 
     // UPDATE TASK
-    public Task updateTask(String id, Task updates, String userId) {
+    public Task updateTask(String id, Task updates ) {
         Task task = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found: " + id));
+        String userId = getCurrentUserId();
 
         // Update fields
         task.setTitle(updates.getTitle());
