@@ -1,0 +1,9 @@
+realm: taskmanagement
+auth-server-url: http://localhost:8090
+ssl-required: external
+resource: task-management-services
+credentials:
+  secret: hg9yBb5GUT8f4OKkMkK7QRO2VXzB6upV
+
+# Public client for frontend
+public-client: task-management-web
