@@ -1,9 +1,10 @@
-package tn.ahmed.taskservice;
+package tn.ahmed.taskservice.service;
 
 import io.dapr.client.DaprClient;
 import io.dapr.client.domain.HttpExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import tn.ahmed.taskservice.entities.Task;
 
 import java.util.UUID;
 

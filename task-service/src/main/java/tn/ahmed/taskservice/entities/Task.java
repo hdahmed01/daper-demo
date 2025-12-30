@@ -1,16 +1,19 @@
-package tn.ahmed.taskservice;
+package tn.ahmed.taskservice.entities;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-import java.time.LocalDateTime;
 
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection = "tasks")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Task {
+    @Id
     @JsonProperty("id")
     private String id;
 
@@ -68,20 +71,5 @@ public class Task {
     private Double actualHours;
 }
 
-// ═══════════════════════════════════════════════════════════
-// Enums for Status and Priority
-// ═══════════════════════════════════════════════════════════
-enum TaskStatus {
-    OPEN,
-    IN_PROGRESS,
-    IN_REVIEW,
-    COMPLETED,
-    CANCELLED
-}
 
-enum Priority {
-    LOW,
-    MEDIUM,
-    HIGH,
-    URGENT
-}
+

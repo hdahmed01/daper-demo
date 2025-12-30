@@ -1,4 +1,4 @@
-package tn.ahmed.taskservice;
+package tn.ahmed.taskservice.config;
 
 
 import org.springframework.context.annotation.Bean;

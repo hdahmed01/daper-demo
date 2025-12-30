@@ -58,4 +58,7 @@ docker run -d `
 
 
 docker run -d -p 1025:1025 -p 8025:8025 --name mailhog mailhog/mailhog
- 
+
+
+
+docker run -d   --name task-mongodb   -p 27017:27017   -e MONGO_INITDB_ROOT_USERNAME=admin   -e MONGO_INITDB_ROOT_PASSWORD=password   -v task-mongo-data:/data/db   mongo:7-jammy
