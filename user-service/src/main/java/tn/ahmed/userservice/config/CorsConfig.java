@@ -1,4 +1,4 @@
-package tn.ahmed.taskservice.config;
+package tn.ahmed.userservice.config;
 
 
 import org.springframework.context.annotation.Bean;
@@ -16,7 +16,7 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE","PATCH", "OPTIONS")
+                        .allowedMethods("GET", "POST", "PUT","PATCH", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
             }
         };

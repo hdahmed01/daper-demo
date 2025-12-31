@@ -156,7 +156,6 @@
             border-radius: 8px;
             border-left: 4px solid #667eea;
             transition: all 0.3s;
-            cursor: pointer;
         }
 
         .task-item:hover {
@@ -352,8 +351,6 @@
             border-radius: 12px;
             max-width: 400px;
             width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
             box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
 
@@ -401,61 +398,6 @@
         .priority-option.selected {
             border-color: #667eea;
             background: #e3f2fd;
-        }
-
-        .nav-pills {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .nav-pill {
-            padding: 10px 20px;
-            border: none;
-            background: #f8f9fa;
-            color: #555;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .nav-pill:hover {
-            background: #e9ecef;
-        }
-
-        .nav-pill.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .detail-group {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .detail-group:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #667eea;
-            font-size: 0.9em;
-            margin-bottom: 5px;
-        }
-
-        .detail-value {
-            color: #333;
-            font-size: 1em;
-        }
-
-        .detail-value.empty {
-            color: #999;
-            font-style: italic;
         }
     </style>
 </head>
@@ -550,78 +492,17 @@
             <div class="card">
                 <h2>📝 Tasks</h2>
                 
-                <!-- Nav Pills -->
-                <div class="nav-pills">
-                    <button class="nav-pill active" onclick="filterTasks('ALL')">All Tasks</button>
-                    <button class="nav-pill" onclick="filterTasks('OPEN')">Open</button>
-                    <button class="nav-pill" onclick="filterTasks('IN_PROGRESS')">In Progress</button>
-                    <button class="nav-pill" onclick="filterTasks('IN_REVIEW')">In Review</button>
-                    <button class="nav-pill" onclick="filterTasks('COMPLETED')">Completed</button>
-                    <button class="nav-pill" onclick="filterTasks('MY_TASKS')">My Tasks</button>
+                <!-- Filters -->
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterTasks('ALL')">All</button>
+                    <button class="filter-btn" onclick="filterTasks('OPEN')">Open</button>
+                    <button class="filter-btn" onclick="filterTasks('IN_PROGRESS')">In Progress</button>
+                    <button class="filter-btn" onclick="filterTasks('COMPLETED')">Completed</button>
+                    <button class="filter-btn" onclick="filterTasks('MY_TASKS')">My Tasks</button>
                 </div>
 
                 <div id="taskList" class="task-list">
                     <div class="loading">Loading tasks...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Task Modal (Read-only) -->
-    <div id="viewModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>👁️ Task Details</h3>
-                <button class="close-btn" onclick="closeViewModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="detail-group">
-                    <div class="detail-label">Title</div>
-                    <div class="detail-value" id="viewTaskTitle"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Description</div>
-                    <div class="detail-value" id="viewTaskDescription"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value" id="viewTaskStatus"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Priority</div>
-                    <div class="detail-value" id="viewTaskPriority"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Assigned To</div>
-                    <div class="detail-value" id="viewTaskAssignee"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Team ID</div>
-                    <div class="detail-value" id="viewTaskTeamId"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Due Date</div>
-                    <div class="detail-value" id="viewTaskDueDate"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Estimated Hours</div>
-                    <div class="detail-value" id="viewTaskEstimatedHours"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Actual Hours</div>
-                    <div class="detail-value" id="viewTaskActualHours"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Tags</div>
-                    <div class="detail-value" id="viewTaskTags"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Created At</div>
-                    <div class="detail-value" id="viewTaskCreatedAt"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Updated At</div>
-                    <div class="detail-value" id="viewTaskUpdatedAt"></div>
                 </div>
             </div>
         </div>
@@ -936,54 +817,8 @@
 
         return validTransitions.map(status => {
             const config = buttonConfig[status];
-            return `<button class="btn ${config.class}" onclick="event.stopPropagation(); updateTaskStatus('${task.id}', '${status}')">${config.icon} ${config.label}</button>`;
+            return `<button class="btn ${config.class}" onclick="updateTaskStatus('${task.id}', '${status}')">${config.icon} ${config.label}</button>`;
         }).join(' ');
-    }
-
-    // View task modal functions
-    function showViewModal(taskId) {
-        const task = allTasks.find(t => t.id === taskId);
-        if (!task) return;
-        
-        const assignedUser = allUsers.find(u => u.keycloakId === task.assignedTo);
-        const assigneeName = assignedUser ? `${assignedUser.username} (${assignedUser.email})` : 'Unassigned';
-        
-        document.getElementById('viewTaskTitle').textContent = task.title || '';
-        document.getElementById('viewTaskDescription').textContent = task.description || 'No description';
-        document.getElementById('viewTaskDescription').className = task.description ? 'detail-value' : 'detail-value empty';
-        
-        document.getElementById('viewTaskStatus').innerHTML = `<span class="badge badge-status">${task.status}</span>`;
-        document.getElementById('viewTaskPriority').innerHTML = `<span class="badge badge-priority ${task.priority}">${task.priority}</span>`;
-        document.getElementById('viewTaskAssignee').textContent = assigneeName;
-        
-        document.getElementById('viewTaskTeamId').textContent = task.teamId || 'Not assigned to team';
-        document.getElementById('viewTaskTeamId').className = task.teamId ? 'detail-value' : 'detail-value empty';
-        
-        document.getElementById('viewTaskDueDate').textContent = task.dueDate ? new Date(task.dueDate).toLocaleString() : 'No due date';
-        document.getElementById('viewTaskDueDate').className = task.dueDate ? 'detail-value' : 'detail-value empty';
-        
-        document.getElementById('viewTaskEstimatedHours').textContent = task.estimatedHours ? `${task.estimatedHours} hours` : 'Not set';
-        document.getElementById('viewTaskEstimatedHours').className = task.estimatedHours ? 'detail-value' : 'detail-value empty';
-        
-        document.getElementById('viewTaskActualHours').textContent = task.actualHours ? `${task.actualHours} hours` : 'Not set';
-        document.getElementById('viewTaskActualHours').className = task.actualHours ? 'detail-value' : 'detail-value empty';
-        
-        if (task.tags && task.tags.length > 0) {
-            document.getElementById('viewTaskTags').innerHTML = task.tags.map(tag => `<span class="badge" style="background:#e0e0e0;color:#333;margin-right:5px;">🏷️ ${tag}</span>`).join('');
-            document.getElementById('viewTaskTags').className = 'detail-value';
-        } else {
-            document.getElementById('viewTaskTags').textContent = 'No tags';
-            document.getElementById('viewTaskTags').className = 'detail-value empty';
-        }
-        
-        document.getElementById('viewTaskCreatedAt').textContent = task.createdAt ? new Date(task.createdAt).toLocaleString() : 'N/A';
-        document.getElementById('viewTaskUpdatedAt').textContent = task.updatedAt ? new Date(task.updatedAt).toLocaleString() : 'N/A';
-        
-        document.getElementById('viewModal').classList.add('show');
-    }
-
-    function closeViewModal() {
-        document.getElementById('viewModal').classList.remove('show');
     }
 
     // Priority modal functions
@@ -991,8 +826,10 @@
         selectedTaskForPriority = taskId;
         selectedPriority = currentPriority;
         
+        // Show modal
         document.getElementById('priorityModal').classList.add('show');
         
+        // Set current priority as selected
         document.querySelectorAll('.priority-option').forEach(option => {
             option.classList.remove('selected');
             if (option.dataset.priority === currentPriority) {
@@ -1000,6 +837,7 @@
             }
         });
 
+        // Add click listeners to priority options
         document.querySelectorAll('.priority-option').forEach(option => {
             option.onclick = function() {
                 document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('selected'));
@@ -1047,8 +885,10 @@
     function showAssignModal(taskId, currentAssignee) {
         selectedTaskForAssign = taskId;
         
+        // Show modal
         document.getElementById('assignModal').classList.add('show');
         
+        // Populate user dropdown
         const select = document.getElementById('assignUserSelect');
         select.innerHTML = '<option value="">Unassigned</option>';
         
@@ -1104,6 +944,7 @@
         
         if (!task) return;
         
+        // Populate form
         document.getElementById('editTaskTitle').value = task.title || '';
         document.getElementById('editTaskDescription').value = task.description || '';
         document.getElementById('editTaskTeamId').value = task.teamId || '';
@@ -1112,6 +953,7 @@
         document.getElementById('editTaskActualHours').value = task.actualHours || '';
         document.getElementById('editTaskTags').value = task.tags ? task.tags.join(', ') : '';
         
+        // Show modal
         document.getElementById('editModal').classList.add('show');
     }
 
@@ -1170,7 +1012,8 @@
     function filterTasks(filter) {
         currentFilter = filter;
         
-        document.querySelectorAll('.nav-pill').forEach(btn => {
+        // Update active filter button
+        document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         event.target.classList.add('active');
@@ -1200,7 +1043,7 @@
             const assigneeName = assignedUser ? assignedUser.username : 'Unassigned';
             
             return `
-                <div class="task-item" onclick="showViewModal('${task.id}')">
+                <div class="task-item">
                     <div class="task-header">
                         <div class="task-title">${task.title}</div>
                     </div>
@@ -1214,10 +1057,10 @@
                     </div>
                     <div class="task-actions">
                         ${getStatusButtons(task)}
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); showPriorityModal('${task.id}', '${task.priority}')">⚡ Priority</button>
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); showAssignModal('${task.id}', '${task.assignedTo || ''}')">👤 Assign</button>
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); showEditModal('${task.id}')">✏️ Edit</button>
-                        <button class="btn btn-danger" onclick="event.stopPropagation(); deleteTask('${task.id}')">🗑️</button>
+                        <button class="btn btn-secondary" onclick="showPriorityModal('${task.id}', '${task.priority}')">⚡ Priority</button>
+                        <button class="btn btn-secondary" onclick="showAssignModal('${task.id}', '${task.assignedTo || ''}')">👤 Assign</button>
+                        <button class="btn btn-secondary" onclick="showEditModal('${task.id}')">✏️ Edit</button>
+                        <button class="btn btn-danger" onclick="deleteTask('${task.id}')">🗑️</button>
                     </div>
                 </div>
             `;
