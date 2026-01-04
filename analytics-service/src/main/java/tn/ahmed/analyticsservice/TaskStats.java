@@ -2,6 +2,7 @@ package tn.ahmed.analyticsservice;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 public class TaskStats {
 
     // ═══════════════════════════════════════════════════════════
-    // BASIC COUNTERS
+    // Basic Counters
     // ═══════════════════════════════════════════════════════════
     @JsonProperty("totalTasks")
     @Builder.Default
@@ -32,7 +33,7 @@ public class TaskStats {
     private int totalAssignments = 0;
 
     // ═══════════════════════════════════════════════════════════
-    // TIME-BASED TRACKING
+    // Time-based Tracking
     // ═══════════════════════════════════════════════════════════
     @JsonProperty("tasksToday")
     @Builder.Default
@@ -46,84 +47,17 @@ public class TaskStats {
     @Builder.Default
     private int tasksThisMonth = 0;
 
-    @JsonProperty("tasksLastHour")
-    @Builder.Default
-    private int tasksLastHour = 0;
-
-    @JsonProperty("lastUpdated")
-    private String lastUpdated;
-
     @JsonProperty("lastCountDate")
-    private String lastCountDate;
+    private String lastCountDate;  // "2025-01-15"
 
     @JsonProperty("lastTaskDate")
     private String lastTaskDate;
 
-    @JsonProperty("lastHourTimestamp")
-    private String lastHourTimestamp;
-
-    // ═════════════════════════════════════════════════════════
-    // DISTRIBUTION MAPS
-    // ═══════════════════════════════════════════════════════════
-    @JsonProperty("tasksByTitle")
-    @Builder.Default
-    private Map<String, Integer> tasksByTitle = Map.of();
-
-    @JsonProperty("tasksByHour")
-    @Builder.Default
-    private Map<String, Integer> tasksByHour = Map.of();
-
-    @JsonProperty("tasksByDayOfWeek")
-    @Builder.Default
-    private Map<String, Integer> tasksByDayOfWeek = Map.of();
-
-    @JsonProperty("tasksByMonth")
-    @Builder.Default
-    private Map<String, Integer> tasksByMonth = Map.of();
+    @JsonProperty("lastUpdated")
+    private String lastUpdated;  // ISO timestamp string
 
     // ═══════════════════════════════════════════════════════════
-    // NEW: TEAM & USER METRICS
-    // ═══════════════════════════════════════════════════════════
-    @JsonProperty("tasksByPriority")
-    @Builder.Default
-    private Map<String, Integer> tasksByPriority = Map.of();
-
-    @JsonProperty("tasksByTeam")
-    @Builder.Default
-    private Map<String, Integer> tasksByTeam = Map.of();
-
-    @JsonProperty("tasksByAssignee")
-    @Builder.Default
-    private Map<String, Integer> tasksByAssignee = Map.of();
-
-    @JsonProperty("statusTransitions")
-    @Builder.Default
-    private Map<String, Integer> statusTransitions = Map.of();
-
-    // ═══════════════════════════════════════════════════════════
-    // WORD CLOUD & TITLES
-    // ═══════════════════════════════════════════════════════════
-    @JsonProperty("titleWordFrequency")
-    @Builder.Default
-    private Map<String, Integer> titleWordFrequency = Map.of();
-
-    @JsonProperty("topTitles")
-    @Builder.Default
-    private List<String> topTitles = List.of();
-
-    // ═══════════════════════════════════════════════════════════
-    // RECENT ACTIVITY
-    // ═══════════════════════════════════════════════════════════
-    @JsonProperty("recentTasks")
-    @Builder.Default
-    private List<RecentTask> recentTasks = List.of();
-
-    @JsonProperty("completedTaskIds")
-    @Builder.Default
-    private List<String> completedTaskIds = List.of();
-
-    // ═══════════════════════════════════════════════════════════
-    // STREAKS & PERFORMANCE
+    // Streaks & Activity
     // ═══════════════════════════════════════════════════════════
     @JsonProperty("currentStreak")
     @Builder.Default
@@ -137,11 +71,84 @@ public class TaskStats {
     @Builder.Default
     private int totalDaysActive = 0;
 
+    // ═══════════════════════════════════════════════════════════
+    // Distribution Maps
+    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("tasksByHour")
+    @Builder.Default
+    private Map<String, Integer> tasksByHour = new java.util.HashMap<>();
+
+    @JsonProperty("tasksByDayOfWeek")
+    @Builder.Default
+    private Map<String, Integer> tasksByDayOfWeek = new java.util.HashMap<>();
+
+    @JsonProperty("tasksByMonth")
+    @Builder.Default
+    private Map<String, Integer> tasksByMonth = new java.util.HashMap<>();
+
+    @JsonProperty("tasksByPriority")
+    @Builder.Default
+    private Map<String, Integer> tasksByPriority = new java.util.HashMap<>();
+
+    @JsonProperty("tasksByTeam")
+    @Builder.Default
+    private Map<String, Integer> tasksByTeam = new java.util.HashMap<>();
+
+    @JsonProperty("tasksByAssignee")
+    @Builder.Default
+    private Map<String, Integer> tasksByAssignee = new java.util.HashMap<>();
+
+    @JsonProperty("tasksByCreator")
+    @Builder.Default
+    private Map<String, Integer> tasksByCreator = new java.util.HashMap<>();
+
+    @JsonProperty("tasksByTitle")
+    @Builder.Default
+    private Map<String, Integer> tasksByTitle = new java.util.HashMap<>();
+
+    // ═══════════════════════════════════════════════════════════
+    // Workflow Tracking
+    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("statusTransitions")
+    @Builder.Default
+    private Map<String, Integer> statusTransitions = new java.util.HashMap<>();
+
+    @JsonProperty("priorityChanges")
+    @Builder.Default
+    private Map<String, Integer> priorityChanges = new java.util.HashMap<>();
+
+    // ═══════════════════════════════════════════════════════════
+    // Word Analytics
+    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("titleWordFrequency")
+    @Builder.Default
+    private Map<String, Integer> titleWordFrequency = new java.util.HashMap<>();
+
+    // ═══════════════════════════════════════════════════════════
+    // Lists
+    // ═══════════════════════════════════════════════════════════
+    @JsonProperty("recentTasks")
+    @Builder.Default
+    private List<RecentTask> recentTasks = new java.util.ArrayList<>();
+
+    @JsonProperty("topTitles")
+    @Builder.Default
+    private List<String> topTitles = new java.util.ArrayList<>();
+
+    @JsonProperty("completedTaskIds")
+    @Builder.Default
+    private List<String> completedTaskIds = new java.util.ArrayList<>();
+
+    // ═══════════════════════════════════════════════════════════
+    // Performance Metrics
+    // ═══════════════════════════════════════════════════════════
     @JsonProperty("busiestHour")
-    private String busiestHour;
+    @Builder.Default
+    private String busiestHour = "N/A";
 
     @JsonProperty("busiestDay")
-    private String busiestDay;
+    @Builder.Default
+    private String busiestDay = "N/A";
 
     @JsonProperty("peakTasksInOneHour")
     @Builder.Default
@@ -152,7 +159,7 @@ public class TaskStats {
     private double averageTasksPerDay = 0.0;
 
     // ═══════════════════════════════════════════════════════════
-    // NESTED CLASS: Recent Task
+    // Nested Class: RecentTask
     // ═══════════════════════════════════════════════════════════
     @Getter
     @Setter
@@ -167,6 +174,6 @@ public class TaskStats {
         private String title;
 
         @JsonProperty("timestamp")
-        private String timestamp;
+        private String timestamp;  // ISO timestamp string
     }
 }

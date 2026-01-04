@@ -1,0 +1,46 @@
+apiVersion: kind.x-k8s.io/v1alpha4
+kind: Cluster
+name: taskmanagement-cluster
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.29.4
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 30081
+        hostPort: 8081
+        protocol: TCP
+      - containerPort: 30082
+        hostPort: 8082
+        protocol: TCP
+      - containerPort: 30083
+        hostPort: 8083
+        protocol: TCP
+      - containerPort: 30084
+        hostPort: 8084
+        protocol: TCP
+      - containerPort: 30085
+        hostPort: 8085
+        protocol: TCP
+      - containerPort: 30090
+        hostPort: 8090
+        protocol: TCP
+      - containerPort: 30017
+        hostPort: 27017
+        protocol: TCP
+      - containerPort: 30333
+        hostPort: 6333
+        protocol: TCP
+      - containerPort: 30686
+        hostPort: 16686
+        protocol: TCP
+      - containerPort: 31025
+        hostPort: 1025
+        protocol: TCP
+      - containerPort: 30025
+        hostPort: 8025
+        protocol: TCP

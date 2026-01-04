@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.WeekFields;
 import java.util.*;
@@ -23,7 +24,7 @@ public class AnalyticsController {
     private final String STATS_KEY = "global-task-stats";
 
     // ═══════════════════════════════════════════════════════════
-    // TASK CREATED EVENT (existing + enhancements)
+    // TASK CREATED EVENT (Updated for new Task structure)
     // ═══════════════════════════════════════════════════════════
     @PostMapping(path = "/task-created")
     public void onTaskCreated(@RequestBody CloudEvent event) {
@@ -31,12 +32,18 @@ public class AnalyticsController {
 
         try {
             Map<String, Object> data = (Map<String, Object>) event.getData();
-            String taskId = data.getOrDefault("id", "unknown").toString();
-            String title = data.getOrDefault("title", "untitled").toString();
-            String priority = data.getOrDefault("priority", "MEDIUM").toString();
-            String teamId = data.getOrDefault("teamId", "unassigned").toString();
-            String assignedTo = data.getOrDefault("assignedTo", "unassigned").toString();
-            LocalDateTime now = LocalDateTime.now();
+            String taskId = getStringValue(data, "id", "unknown");
+            String title = getStringValue(data, "title", "untitled");
+            String priority = getStringValue(data, "priority", "MEDIUM");
+            String teamId = getStringValue(data, "teamId", "unassigned");
+            String assignedTo = getStringValue(data, "assignedTo", "unassigned");
+            String createdBy = getStringValue(data, "createdBy", "unknown");
+
+            // Parse createdAt string to LocalDateTime
+            LocalDateTime now = parseDateTime(getStringValue(data, "createdAt", null));
+            if (now == null) {
+                now = LocalDateTime.now();
+            }
 
             TaskStats stats = getStats();
 
@@ -44,35 +51,38 @@ public class AnalyticsController {
             stats.setTotalTasks(stats.getTotalTasks() + 1);
             stats.setLastUpdated(now.toString());
 
-            // NEW: Track by priority
+            // Track by priority
             updatePriorityStats(stats, priority);
 
-            // NEW: Track by team
+            // Track by team
             updateTeamStats(stats, teamId);
 
-            // NEW: Track by assignee
+            // Track by assignee
             updateAssigneeStats(stats, assignedTo);
 
-            // Existing: Time-based analytics
+            // Track by creator
+            updateCreatorStats(stats, createdBy);
+
+            // Time-based analytics
             updateTimeBasedStats(stats, now);
 
-            // Existing: Word frequency
+            // Word frequency
             updateWordFrequency(stats, title);
 
-            // Existing: Activity tracking
+            // Activity tracking
             updateActivityTracking(stats, now);
 
-            // Existing: Streaks
+            // Streaks
             updateStreaks(stats, now);
 
-            // Existing: Recent tasks
+            // Recent tasks
             updateRecentTasks(stats, taskId, title, now);
 
-            // Existing: Performance metrics
+            // Performance metrics
             updatePerformanceMetrics(stats);
 
-            // Existing: Top titles
-            updateTopTitles(stats);
+            // Top titles
+            updateTopTitles(stats, title);
 
             // Save
             client.saveState(STATE_STORE, STATS_KEY, stats).block();
@@ -86,7 +96,7 @@ public class AnalyticsController {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // TASK STATUS CHANGED EVENT (NEW)
+    // TASK STATUS CHANGED EVENT
     // ═══════════════════════════════════════════════════════════
     @PostMapping(path = "/task-status-changed")
     public void onTaskStatusChanged(@RequestBody CloudEvent event) {
@@ -94,10 +104,15 @@ public class AnalyticsController {
 
         try {
             Map<String, Object> data = (Map<String, Object>) event.getData();
-            String taskId = data.getOrDefault("taskId", "unknown").toString();
-            String oldStatus = data.getOrDefault("oldStatus", "OPEN").toString();
-            String newStatus = data.getOrDefault("newStatus", "OPEN").toString();
-            LocalDateTime now = LocalDateTime.now();
+            String taskId = getStringValue(data, "taskId", "unknown");
+            String oldStatus = getStringValue(data, "oldStatus", "OPEN");
+            String newStatus = getStringValue(data, "newStatus", "OPEN");
+            String changedBy = getStringValue(data, "changedBy", "unknown");
+
+            LocalDateTime now = parseDateTime(getStringValue(data, "timestamp", null));
+            if (now == null) {
+                now = LocalDateTime.now();
+            }
 
             TaskStats stats = getStats();
 
@@ -111,11 +126,14 @@ public class AnalyticsController {
                 // Calculate completion rate
                 double completionRate = (double) stats.getCompletedTasks() / stats.getTotalTasks() * 100;
                 stats.setCompletionRate(completionRate);
-            }
 
-            // Track cycle time (OPEN → COMPLETED)
-            if ("COMPLETED".equals(newStatus)) {
-                updateCycleTime(stats, taskId);
+                // Track completed task IDs
+                if (stats.getCompletedTaskIds() == null) {
+                    stats.setCompletedTaskIds(new ArrayList<>());
+                }
+                if (!stats.getCompletedTaskIds().contains(taskId)) {
+                    stats.getCompletedTaskIds().add(taskId);
+                }
             }
 
             stats.setLastUpdated(now.toString());
@@ -130,7 +148,7 @@ public class AnalyticsController {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // TASK ASSIGNED EVENT (NEW)
+    // TASK ASSIGNED EVENT
     // ═══════════════════════════════════════════════════════════
     @PostMapping(path = "/task-assigned")
     public void onTaskAssigned(@RequestBody CloudEvent event) {
@@ -138,9 +156,14 @@ public class AnalyticsController {
 
         try {
             Map<String, Object> data = (Map<String, Object>) event.getData();
-            String taskId = data.getOrDefault("taskId", "unknown").toString();
-            String newAssignee = data.getOrDefault("newAssignee", "unassigned").toString();
-            LocalDateTime now = LocalDateTime.now();
+            String taskId = getStringValue(data, "taskId", "unknown");
+            String newAssignee = getStringValue(data, "newAssignee", "unassigned");
+            String assignedBy = getStringValue(data, "assignedBy", "unknown");
+
+            LocalDateTime now = parseDateTime(getStringValue(data, "timestamp", null));
+            if (now == null) {
+                now = LocalDateTime.now();
+            }
 
             TaskStats stats = getStats();
 
@@ -162,8 +185,71 @@ public class AnalyticsController {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // NEW HELPER METHODS
+    // TASK PRIORITY CHANGED EVENT
     // ═══════════════════════════════════════════════════════════
+    @PostMapping(path = "/task-priority-changed")
+    public void onTaskPriorityChanged(@RequestBody CloudEvent event) {
+        System.out.println("📊 Analytics: Received task-priority-changed event");
+
+        try {
+            Map<String, Object> data = (Map<String, Object>) event.getData();
+            String taskId = getStringValue(data, "taskId", "unknown");
+            String oldPriority = getStringValue(data, "oldPriority", "MEDIUM");
+            String newPriority = getStringValue(data, "newPriority", "MEDIUM");
+
+            LocalDateTime now = parseDateTime(getStringValue(data, "timestamp", null));
+            if (now == null) {
+                now = LocalDateTime.now();
+            }
+
+            TaskStats stats = getStats();
+
+            // Track priority changes
+            Map<String, Integer> priorityChanges = stats.getPriorityChanges();
+            if (priorityChanges == null) priorityChanges = new HashMap<>();
+
+            String changeKey = oldPriority + " → " + newPriority;
+            priorityChanges.put(changeKey, priorityChanges.getOrDefault(changeKey, 0) + 1);
+            stats.setPriorityChanges(priorityChanges);
+
+            stats.setLastUpdated(now.toString());
+            client.saveState(STATE_STORE, STATS_KEY, stats).block();
+
+            System.out.println("✅ Analytics updated (priority changed)");
+
+        } catch (Exception e) {
+            System.err.println("❌ Error processing priority change: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // HELPER METHODS
+    // ═══════════════════════════════════════════════════════════
+
+    private String getStringValue(Map<String, Object> map, String key, String defaultValue) {
+        Object value = map.get(key);
+        return value != null ? value.toString() : defaultValue;
+    }
+
+    private LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isEmpty()) {
+            return null;
+        }
+
+        try {
+            // Try parsing ISO format: "2025-01-15T10:30:45.123"
+            return LocalDateTime.parse(dateTimeStr);
+        } catch (DateTimeParseException e1) {
+            try {
+                // Try parsing without milliseconds: "2025-01-15T10:30:45"
+                return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (DateTimeParseException e2) {
+                System.err.println("Failed to parse date: " + dateTimeStr);
+                return null;
+            }
+        }
+    }
 
     private void updatePriorityStats(TaskStats stats, String priority) {
         Map<String, Integer> priorityMap = stats.getTasksByPriority();
@@ -186,6 +272,13 @@ public class AnalyticsController {
         stats.setTasksByAssignee(assigneeMap);
     }
 
+    private void updateCreatorStats(TaskStats stats, String creator) {
+        Map<String, Integer> creatorMap = stats.getTasksByCreator();
+        if (creatorMap == null) creatorMap = new HashMap<>();
+        creatorMap.put(creator, creatorMap.getOrDefault(creator, 0) + 1);
+        stats.setTasksByCreator(creatorMap);
+    }
+
     private void updateStatusTransitions(TaskStats stats, String oldStatus, String newStatus) {
         Map<String, Integer> transitionsMap = stats.getStatusTransitions();
         if (transitionsMap == null) transitionsMap = new HashMap<>();
@@ -194,23 +287,6 @@ public class AnalyticsController {
         transitionsMap.put(transition, transitionsMap.getOrDefault(transition, 0) + 1);
         stats.setStatusTransitions(transitionsMap);
     }
-
-    private void updateCycleTime(TaskStats stats, String taskId) {
-        // In production, would calculate actual time from task creation to completion
-        // For now, just track that we completed a task
-        stats.setCompletedTaskIds(
-                stats.getCompletedTaskIds() == null ?
-                        new ArrayList<>(List.of(taskId)) :
-                        new ArrayList<>(stats.getCompletedTaskIds())
-        );
-        if (!stats.getCompletedTaskIds().contains(taskId)) {
-            stats.getCompletedTaskIds().add(taskId);
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // EXISTING HELPER METHODS (from original)
-    // ═══════════════════════════════════════════════════════════
 
     private void updateTimeBasedStats(TaskStats stats, LocalDateTime now) {
         String hour = String.valueOf(now.getHour());
@@ -350,12 +426,14 @@ public class AnalyticsController {
         }
     }
 
-    private void updateTopTitles(TaskStats stats) {
-        if (stats.getTasksByTitle() == null || stats.getTasksByTitle().isEmpty()) {
-            return;
-        }
+    private void updateTopTitles(TaskStats stats, String title) {
+        Map<String, Integer> titleMap = stats.getTasksByTitle();
+        if (titleMap == null) titleMap = new HashMap<>();
 
-        List<String> topTitles = stats.getTasksByTitle().entrySet().stream()
+        titleMap.merge(title, 1, Integer::sum);
+        stats.setTasksByTitle(titleMap);
+
+        List<String> topTitles = titleMap.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(5)
                 .map(Map.Entry::getKey)
@@ -365,7 +443,7 @@ public class AnalyticsController {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // REST API ENDPOINTS (existing + new)
+    // REST API ENDPOINTS
     // ═══════════════════════════════════════════════════════════
 
     @GetMapping("/stats")
@@ -452,7 +530,9 @@ public class AnalyticsController {
                     .tasksByPriority(new HashMap<>())
                     .tasksByTeam(new HashMap<>())
                     .tasksByAssignee(new HashMap<>())
+                    .tasksByCreator(new HashMap<>())
                     .statusTransitions(new HashMap<>())
+                    .priorityChanges(new HashMap<>())
                     .titleWordFrequency(new HashMap<>())
                     .recentTasks(new ArrayList<>())
                     .topTitles(new ArrayList<>())

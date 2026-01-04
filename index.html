@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +29,7 @@
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
@@ -102,7 +103,7 @@
             background: white;
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .card h2 {
@@ -161,7 +162,7 @@
 
         .task-item:hover {
             transform: translateX(5px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .task-header {
@@ -282,7 +283,7 @@
             background: white;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
@@ -301,7 +302,7 @@
             .content {
                 grid-template-columns: 1fr;
             }
-            
+
             .header {
                 flex-direction: column;
                 gap: 15px;
@@ -319,7 +320,7 @@
             background: white;
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
             text-align: center;
             max-width: 400px;
         }
@@ -337,7 +338,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
         }
@@ -354,7 +355,7 @@
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
@@ -457,749 +458,815 @@
             color: #999;
             font-style: italic;
         }
+
+        /* Pagination styles (added) */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #667eea;
+            background: white;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .user-info a {
+            text-decoration: none;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <!-- Login Screen -->
-    <div id="loginScreen">
-        <div class="login-card">
-            <h2>🔐 Task Management System</h2>
-            <p style="margin-bottom: 20px; color: #666;">Please login to continue</p>
-            <button class="btn btn-primary" onclick="login()">Login with Keycloak</button>
-        </div>
-    </div>
-
-    <!-- Main App (hidden initially) -->
-    <div id="mainApp" style="display: none;">
-        <!-- Header -->
-        <div class="header">
-            <div>
-                <h1>📋 Task Management</h1>
-            </div>
-            <div class="user-info">
-                <span>👤 <strong id="userName"></strong></span>
-                <button class="btn btn-secondary" onclick="logout()">Logout</button>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen">
+            <div class="login-card">
+                <h2>🔐 Task Management System</h2>
+                <p style="margin-bottom: 20px; color: #666;">Please login to continue</p>
+                <button class="btn btn-primary" onclick="login()">Login with Keycloak</button>
             </div>
         </div>
 
-        <!-- Stats -->
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-value" id="totalTasks">0</div>
-                <div class="stat-label">Total Tasks</div>
+        <!-- Main App (hidden initially) -->
+        <div id="mainApp" style="display: none;">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h1>📋 Task Management</h1>
+                </div>
+                <div class="user-info">
+                    <span>👤 <strong id="userName"></strong></span>
+
+                    <a href="analysis.html" class="btn btn-secondary">
+                        📊 Analytics
+                    </a>
+
+                    <button class="btn btn-secondary" onclick="logout()">
+                        Logout
+                    </button>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="openTasks">0</div>
-                <div class="stat-label">Open Tasks</div>
+
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="openTasks">0</div>
+                    <div class="stat-label">Open Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="myTasks">0</div>
+                    <div class="stat-label">My Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completedTasks">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="myTasks">0</div>
-                <div class="stat-label">My Tasks</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="completedTasks">0</div>
-                <div class="stat-label">Completed</div>
+
+            <div id="messages"></div>
+
+            <div class="content">
+                <!-- Create Task Form -->
+                <div class="card">
+                    <h2>➕ Create New Task</h2>
+                    <form id="taskForm" onsubmit="createTask(event)">
+                        <div class="form-group">
+                            <label>Title *</label>
+                            <input type="text" id="taskTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="taskDescription"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <select id="taskPriority">
+                                <option value="LOW">Low</option>
+                                <option value="MEDIUM" selected>Medium</option>
+                                <option value="HIGH">High</option>
+                                <option value="URGENT">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Assign To</label>
+                            <select id="taskAssignee">
+                                <option value="">Select User</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Team ID</label>
+                            <input type="text" id="taskTeamId" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="datetime-local" id="taskDueDate">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Task</button>
+                    </form>
+                </div>
+
+                <!-- Task List -->
+                <div class="card">
+                    <h2>📝 Tasks</h2>
+
+                    <!-- Nav Pills -->
+                    <div class="nav-pills">
+                        <button class="nav-pill active" onclick="filterTasks('ALL')">All Tasks</button>
+                        <button class="nav-pill" onclick="filterTasks('OPEN')">Open</button>
+                        <button class="nav-pill" onclick="filterTasks('IN_PROGRESS')">In Progress</button>
+                        <button class="nav-pill" onclick="filterTasks('IN_REVIEW')">In Review</button>
+                        <button class="nav-pill" onclick="filterTasks('COMPLETED')">Completed</button>
+                        <button class="nav-pill" onclick="filterTasks('MY_TASKS')">My Tasks</button>
+                    </div>
+
+                    <div id="taskList" class="task-list">
+                        <div class="loading">Loading tasks...</div>
+                    </div>
+
+                    <!-- Pagination UI (added) -->
+                    <div id="pagination" class="pagination"></div>
+                </div>
             </div>
         </div>
 
-        <div id="messages"></div>
+        <!-- View Task Modal (Read-only) -->
+        <div id="viewModal" class="modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>👁️ Task Details</h3>
+                    <button class="close-btn" onclick="closeViewModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-group">
+                        <div class="detail-label">Title</div>
+                        <div class="detail-value" id="viewTaskTitle"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value" id="viewTaskDescription"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value" id="viewTaskStatus"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Priority</div>
+                        <div class="detail-value" id="viewTaskPriority"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Assigned To</div>
+                        <div class="detail-value" id="viewTaskAssignee"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Team ID</div>
+                        <div class="detail-value" id="viewTaskTeamId"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Due Date</div>
+                        <div class="detail-value" id="viewTaskDueDate"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Estimated Hours</div>
+                        <div class="detail-value" id="viewTaskEstimatedHours"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Actual Hours</div>
+                        <div class="detail-value" id="viewTaskActualHours"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Tags</div>
+                        <div class="detail-value" id="viewTaskTags"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Created At</div>
+                        <div class="detail-value" id="viewTaskCreatedAt"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Updated At</div>
+                        <div class="detail-value" id="viewTaskUpdatedAt"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div class="content">
-            <!-- Create Task Form -->
-            <div class="card">
-                <h2>➕ Create New Task</h2>
-                <form id="taskForm" onsubmit="createTask(event)">
+        <!-- Priority Change Modal -->
+        <div id="priorityModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>⚡ Change Priority</h3>
+                    <button class="close-btn" onclick="closePriorityModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="priority-option" data-priority="LOW">
+                        <span>🟢 Low</span>
+                        <span class="badge badge-priority LOW">LOW</span>
+                    </div>
+                    <div class="priority-option" data-priority="MEDIUM">
+                        <span>🟡 Medium</span>
+                        <span class="badge badge-priority MEDIUM">MEDIUM</span>
+                    </div>
+                    <div class="priority-option" data-priority="HIGH">
+                        <span>🟠 High</span>
+                        <span class="badge badge-priority HIGH">HIGH</span>
+                    </div>
+                    <div class="priority-option" data-priority="URGENT">
+                        <span>🔴 Urgent</span>
+                        <span class="badge badge-priority URGENT">URGENT</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="confirmPriorityChange()">Update
+                    Priority</button>
+            </div>
+        </div>
+
+        <!-- Assign Task Modal -->
+        <div id="assignModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>👤 Assign Task</h3>
+                    <button class="close-btn" onclick="closeAssignModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Select User</label>
+                        <select id="assignUserSelect"
+                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                            <option value="">Unassigned</option>
+                        </select>
+                    </div>
+                    <div
+                        style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 0.9em; color: #666;">
+                        <strong>💡 Note:</strong> Assigning a task will automatically move OPEN tasks to IN_PROGRESS
+                        status.
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="confirmAssign()">Assign
+                    Task</button>
+            </div>
+        </div>
+
+        <!-- Edit Task Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>✏️ Edit Task</h3>
+                    <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                </div>
+                <div class="modal-body">
                     <div class="form-group">
                         <label>Title *</label>
-                        <input type="text" id="taskTitle" required>
+                        <input type="text" id="editTaskTitle" required>
                     </div>
                     <div class="form-group">
                         <label>Description</label>
-                        <textarea id="taskDescription"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Priority</label>
-                        <select id="taskPriority">
-                            <option value="LOW">Low</option>
-                            <option value="MEDIUM" selected>Medium</option>
-                            <option value="HIGH">High</option>
-                            <option value="URGENT">Urgent</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Assign To</label>
-                        <select id="taskAssignee">
-                            <option value="">Select User</option>
-                        </select>
+                        <textarea id="editTaskDescription"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Team ID</label>
-                        <input type="text" id="taskTeamId" placeholder="Optional">
+                        <input type="text" id="editTaskTeamId" placeholder="Optional">
                     </div>
                     <div class="form-group">
                         <label>Due Date</label>
-                        <input type="datetime-local" id="taskDueDate">
+                        <input type="datetime-local" id="editTaskDueDate">
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">Create Task</button>
-                </form>
-            </div>
-
-            <!-- Task List -->
-            <div class="card">
-                <h2>📝 Tasks</h2>
-                
-                <!-- Nav Pills -->
-                <div class="nav-pills">
-                    <button class="nav-pill active" onclick="filterTasks('ALL')">All Tasks</button>
-                    <button class="nav-pill" onclick="filterTasks('OPEN')">Open</button>
-                    <button class="nav-pill" onclick="filterTasks('IN_PROGRESS')">In Progress</button>
-                    <button class="nav-pill" onclick="filterTasks('IN_REVIEW')">In Review</button>
-                    <button class="nav-pill" onclick="filterTasks('COMPLETED')">Completed</button>
-                    <button class="nav-pill" onclick="filterTasks('MY_TASKS')">My Tasks</button>
+                    <div class="form-group">
+                        <label>Estimated Hours</label>
+                        <input type="number" id="editTaskEstimatedHours" step="0.5" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Actual Hours</label>
+                        <input type="number" id="editTaskActualHours" step="0.5" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Tags (comma-separated)</label>
+                        <input type="text" id="editTaskTags" placeholder="bug, frontend, urgent">
+                    </div>
                 </div>
-
-                <div id="taskList" class="task-list">
-                    <div class="loading">Loading tasks...</div>
-                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="confirmEdit()">Save Changes</button>
             </div>
         </div>
     </div>
 
-    <!-- View Task Modal (Read-only) -->
-    <div id="viewModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>👁️ Task Details</h3>
-                <button class="close-btn" onclick="closeViewModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="detail-group">
-                    <div class="detail-label">Title</div>
-                    <div class="detail-value" id="viewTaskTitle"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Description</div>
-                    <div class="detail-value" id="viewTaskDescription"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value" id="viewTaskStatus"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Priority</div>
-                    <div class="detail-value" id="viewTaskPriority"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Assigned To</div>
-                    <div class="detail-value" id="viewTaskAssignee"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Team ID</div>
-                    <div class="detail-value" id="viewTaskTeamId"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Due Date</div>
-                    <div class="detail-value" id="viewTaskDueDate"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Estimated Hours</div>
-                    <div class="detail-value" id="viewTaskEstimatedHours"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Actual Hours</div>
-                    <div class="detail-value" id="viewTaskActualHours"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Tags</div>
-                    <div class="detail-value" id="viewTaskTags"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Created At</div>
-                    <div class="detail-value" id="viewTaskCreatedAt"></div>
-                </div>
-                <div class="detail-group">
-                    <div class="detail-label">Updated At</div>
-                    <div class="detail-value" id="viewTaskUpdatedAt"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <script>
+        // Configuration
+        const API_BASE = 'http://localhost:8081';
+        const USER_SERVICE_BASE = 'http://localhost:8085';
 
-    <!-- Priority Change Modal -->
-    <div id="priorityModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>⚡ Change Priority</h3>
-                <button class="close-btn" onclick="closePriorityModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="priority-option" data-priority="LOW">
-                    <span>🟢 Low</span>
-                    <span class="badge badge-priority LOW">LOW</span>
-                </div>
-                <div class="priority-option" data-priority="MEDIUM">
-                    <span>🟡 Medium</span>
-                    <span class="badge badge-priority MEDIUM">MEDIUM</span>
-                </div>
-                <div class="priority-option" data-priority="HIGH">
-                    <span>🟠 High</span>
-                    <span class="badge badge-priority HIGH">HIGH</span>
-                </div>
-                <div class="priority-option" data-priority="URGENT">
-                    <span>🔴 Urgent</span>
-                    <span class="badge badge-priority URGENT">URGENT</span>
-                </div>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="confirmPriorityChange()">Update Priority</button>
-        </div>
-    </div>
+        let keycloak;
+        let currentFilter = 'ALL';
+        let allTasks = [];
+        let allUsers = [];
+        let currentUser = null;
+        let selectedTaskForPriority = null;
+        let selectedPriority = null;
+        let selectedTaskForAssign = null;
+        let selectedTaskForEdit = null;
 
-    <!-- Assign Task Modal -->
-    <div id="assignModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>👤 Assign Task</h3>
-                <button class="close-btn" onclick="closeAssignModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Select User</label>
-                    <select id="assignUserSelect" style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
-                        <option value="">Unassigned</option>
-                    </select>
-                </div>
-                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 0.9em; color: #666;">
-                    <strong>💡 Note:</strong> Assigning a task will automatically move OPEN tasks to IN_PROGRESS status.
-                </div>
-            </div>
-            <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="confirmAssign()">Assign Task</button>
-        </div>
-    </div>
+        // Pagination state (added)
+        let currentPage = 1;
+        const PAGE_SIZE = 5; // change this value to have more/less items per page
 
-    <!-- Edit Task Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>✏️ Edit Task</h3>
-                <button class="close-btn" onclick="closeEditModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Title *</label>
-                    <input type="text" id="editTaskTitle" required>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="editTaskDescription"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Team ID</label>
-                    <input type="text" id="editTaskTeamId" placeholder="Optional">
-                </div>
-                <div class="form-group">
-                    <label>Due Date</label>
-                    <input type="datetime-local" id="editTaskDueDate">
-                </div>
-                <div class="form-group">
-                    <label>Estimated Hours</label>
-                    <input type="number" id="editTaskEstimatedHours" step="0.5" min="0">
-                </div>
-                <div class="form-group">
-                    <label>Actual Hours</label>
-                    <input type="number" id="editTaskActualHours" step="0.5" min="0">
-                </div>
-                <div class="form-group">
-                    <label>Tags (comma-separated)</label>
-                    <input type="text" id="editTaskTags" placeholder="bug, frontend, urgent">
-                </div>
-            </div>
-            <button class="btn btn-primary" style="width: 100%;" onclick="confirmEdit()">Save Changes</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Configuration
-    const API_BASE = 'http://localhost:8081';
-    const USER_SERVICE_BASE = 'http://localhost:8085';
-    
-    let keycloak;
-    let currentFilter = 'ALL';
-    let allTasks = [];
-    let allUsers = [];
-    let currentUser = null;
-    let selectedTaskForPriority = null;
-    let selectedPriority = null;
-    let selectedTaskForAssign = null;
-    let selectedTaskForEdit = null;
-
-    // Valid state transitions based on TaskWorkflowService
-    const VALID_TRANSITIONS = {
-        'OPEN': ['IN_PROGRESS', 'CANCELLED'],
-        'IN_PROGRESS': ['IN_REVIEW', 'OPEN', 'CANCELLED'],
-        'IN_REVIEW': ['COMPLETED', 'IN_PROGRESS', 'CANCELLED'],
-        'COMPLETED': ['IN_PROGRESS'],
-        'CANCELLED': ['OPEN']
-    };
-
-    // Initialize Keycloak
-    const keycloakConfig = {
-        url: "http://localhost:8090",
-        realm: "taskmanagement",
-        clientId: "task-management-web"
-    };
-
-    keycloak = new Keycloak(keycloakConfig);
-
-    // Initialize the app
-    keycloak.init({ 
-        onLoad: "check-sso",
-        checkLoginIframe: false
-    }).then(authenticated => {
-        if (authenticated) {
-            showMainApp();
-            loadUsers();
-            loadTasks();
-            updateStats();
-        } else {
-            showLoginScreen();
-        }
-    }).catch(err => {
-        console.error('Keycloak init failed', err);
-        showError('Failed to initialize authentication');
-    });
-
-    function showLoginScreen() {
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('mainApp').style.display = 'none';
-    }
-
-    function showMainApp() {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainApp').style.display = 'block';
-        document.getElementById('userName').textContent = keycloak.tokenParsed.preferred_username || 'User';
-        currentUser = keycloak.tokenParsed.sub;
-    }
-
-    function login() {
-        keycloak.login();
-    }
-
-    function logout() {
-        keycloak.logout();
-    }
-
-    function authHeader() {
-        return {
-            "Authorization": "Bearer " + keycloak.token,
-            "Content-Type": "application/json"
+        // Valid state transitions based on TaskWorkflowService
+        const VALID_TRANSITIONS = {
+            'OPEN': ['IN_PROGRESS', 'CANCELLED'],
+            'IN_PROGRESS': ['IN_REVIEW', 'OPEN', 'CANCELLED'],
+            'IN_REVIEW': ['COMPLETED', 'IN_PROGRESS', 'CANCELLED'],
+            'COMPLETED': ['IN_PROGRESS'],
+            'CANCELLED': ['OPEN']
         };
-    }
 
-    // Load users from user-service
-    async function loadUsers() {
-        try {
-            const response = await fetch(`${USER_SERVICE_BASE}/users`, {
-                headers: authHeader()
-            });
-            
-            if (response.ok) {
-                allUsers = await response.json();
-                populateUserDropdown();
-            }
-        } catch (error) {
-            console.error('Failed to load users:', error);
-        }
-    }
+        // Initialize Keycloak
+        const keycloakConfig = {
+            url: "http://localhost:8090",
+            realm: "taskmanagement",
+            clientId: "task-management-web"
+        };
 
-    function populateUserDropdown() {
-        const select = document.getElementById('taskAssignee');
-        select.innerHTML = '<option value="">Unassigned</option>';
-        
-        allUsers.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.keycloakId;
-            option.textContent = `${user.username} (${user.email})`;
-            select.appendChild(option);
-        });
-    }
+        keycloak = new Keycloak(keycloakConfig);
 
-    // Load tasks
-    async function loadTasks() {
-        try {
-            const response = await fetch(`${API_BASE}/tasks`, {
-                headers: authHeader()
-            });
-
-            if (response.ok) {
-                allTasks = await response.json();
-                displayTasks();
+        // Initialize the app
+        keycloak.init({
+            onLoad: "check-sso",
+            checkLoginIframe: false
+        }).then(authenticated => {
+            if (authenticated) {
+                showMainApp();
+                loadUsers();
+                loadTasks();
                 updateStats();
             } else {
-                showError('Failed to load tasks');
+                showLoginScreen();
             }
-        } catch (error) {
-            console.error('Error loading tasks:', error);
-            showError('Error loading tasks');
-        }
-    }
-
-    // Create task
-    async function createTask(event) {
-        event.preventDefault();
-
-        const task = {
-            title: document.getElementById('taskTitle').value,
-            description: document.getElementById('taskDescription').value,
-            priority: document.getElementById('taskPriority').value,
-            assignedTo: document.getElementById('taskAssignee').value || null,
-            teamId: document.getElementById('taskTeamId').value || null,
-            dueDate: document.getElementById('taskDueDate').value || null,
-            status: 'OPEN'
-        };
-
-        try {
-            const response = await fetch(`${API_BASE}/tasks`, {
-                method: 'POST',
-                headers: authHeader(),
-                body: JSON.stringify(task)
-            });
-
-            if (response.ok) {
-                showSuccess('Task created successfully!');
-                document.getElementById('taskForm').reset();
-                loadTasks();
-            } else {
-                showError('Failed to create task');
-            }
-        } catch (error) {
-            console.error('Error creating task:', error);
-            showError('Error creating task');
-        }
-    }
-
-    // Update task status
-    async function updateTaskStatus(taskId, newStatus) {
-        try {
-            const response = await fetch(`${API_BASE}/tasks/${taskId}/status?status=${newStatus}`, {
-                method: 'PATCH',
-                headers: authHeader()
-            });
-
-            if (response.ok) {
-                showSuccess('Task status updated!');
-                loadTasks();
-            } else {
-                showError('Failed to update status');
-            }
-        } catch (error) {
-            console.error('Error updating status:', error);
-            showError('Error updating status');
-        }
-    }
-
-    // Update task priority
-    async function updateTaskPriority(taskId, newPriority) {
-        try {
-            const response = await fetch(`${API_BASE}/tasks/${taskId}/priority?priority=${newPriority}`, {
-                method: 'PATCH',
-                headers: authHeader()
-            });
-
-            if (response.ok) {
-                showSuccess('Priority updated!');
-                loadTasks();
-            } else {
-                const errorText = await response.text();
-                showError('Failed to update priority: ' + errorText);
-            }
-        } catch (error) {
-            console.error('Error updating priority:', error);
-            showError('Error updating priority');
-        }
-    }
-
-    // Get valid status buttons based on current status
-    function getStatusButtons(task) {
-        const currentStatus = task.status;
-        const validTransitions = VALID_TRANSITIONS[currentStatus] || [];
-        
-        const buttonConfig = {
-            'IN_PROGRESS': { label: 'Start Working', class: 'btn-primary', icon: '▶️' },
-            'IN_REVIEW': { label: 'Send to Review', class: 'btn-primary', icon: '👀' },
-            'COMPLETED': { label: 'Complete', class: 'btn-success', icon: '✅' },
-            'CANCELLED': { label: 'Cancel', class: 'btn-warning', icon: '❌' },
-            'OPEN': { label: 'Reopen', class: 'btn-secondary', icon: '🔄' }
-        };
-
-        return validTransitions.map(status => {
-            const config = buttonConfig[status];
-            return `<button class="btn ${config.class}" onclick="event.stopPropagation(); updateTaskStatus('${task.id}', '${status}')">${config.icon} ${config.label}</button>`;
-        }).join(' ');
-    }
-
-    // View task modal functions
-    function showViewModal(taskId) {
-        const task = allTasks.find(t => t.id === taskId);
-        if (!task) return;
-        
-        const assignedUser = allUsers.find(u => u.keycloakId === task.assignedTo);
-        const assigneeName = assignedUser ? `${assignedUser.username} (${assignedUser.email})` : 'Unassigned';
-        
-        document.getElementById('viewTaskTitle').textContent = task.title || '';
-        document.getElementById('viewTaskDescription').textContent = task.description || 'No description';
-        document.getElementById('viewTaskDescription').className = task.description ? 'detail-value' : 'detail-value empty';
-        
-        document.getElementById('viewTaskStatus').innerHTML = `<span class="badge badge-status">${task.status}</span>`;
-        document.getElementById('viewTaskPriority').innerHTML = `<span class="badge badge-priority ${task.priority}">${task.priority}</span>`;
-        document.getElementById('viewTaskAssignee').textContent = assigneeName;
-        
-        document.getElementById('viewTaskTeamId').textContent = task.teamId || 'Not assigned to team';
-        document.getElementById('viewTaskTeamId').className = task.teamId ? 'detail-value' : 'detail-value empty';
-        
-        document.getElementById('viewTaskDueDate').textContent = task.dueDate ? new Date(task.dueDate).toLocaleString() : 'No due date';
-        document.getElementById('viewTaskDueDate').className = task.dueDate ? 'detail-value' : 'detail-value empty';
-        
-        document.getElementById('viewTaskEstimatedHours').textContent = task.estimatedHours ? `${task.estimatedHours} hours` : 'Not set';
-        document.getElementById('viewTaskEstimatedHours').className = task.estimatedHours ? 'detail-value' : 'detail-value empty';
-        
-        document.getElementById('viewTaskActualHours').textContent = task.actualHours ? `${task.actualHours} hours` : 'Not set';
-        document.getElementById('viewTaskActualHours').className = task.actualHours ? 'detail-value' : 'detail-value empty';
-        
-        if (task.tags && task.tags.length > 0) {
-            document.getElementById('viewTaskTags').innerHTML = task.tags.map(tag => `<span class="badge" style="background:#e0e0e0;color:#333;margin-right:5px;">🏷️ ${tag}</span>`).join('');
-            document.getElementById('viewTaskTags').className = 'detail-value';
-        } else {
-            document.getElementById('viewTaskTags').textContent = 'No tags';
-            document.getElementById('viewTaskTags').className = 'detail-value empty';
-        }
-        
-        document.getElementById('viewTaskCreatedAt').textContent = task.createdAt ? new Date(task.createdAt).toLocaleString() : 'N/A';
-        document.getElementById('viewTaskUpdatedAt').textContent = task.updatedAt ? new Date(task.updatedAt).toLocaleString() : 'N/A';
-        
-        document.getElementById('viewModal').classList.add('show');
-    }
-
-    function closeViewModal() {
-        document.getElementById('viewModal').classList.remove('show');
-    }
-
-    // Priority modal functions
-    function showPriorityModal(taskId, currentPriority) {
-        selectedTaskForPriority = taskId;
-        selectedPriority = currentPriority;
-        
-        document.getElementById('priorityModal').classList.add('show');
-        
-        document.querySelectorAll('.priority-option').forEach(option => {
-            option.classList.remove('selected');
-            if (option.dataset.priority === currentPriority) {
-                option.classList.add('selected');
-            }
+        }).catch(err => {
+            console.error('Keycloak init failed', err);
+            showError('Failed to initialize authentication');
         });
 
-        document.querySelectorAll('.priority-option').forEach(option => {
-            option.onclick = function() {
-                document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedPriority = this.dataset.priority;
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('userName').textContent = keycloak.tokenParsed.preferred_username || 'User';
+            currentUser = keycloak.tokenParsed.sub;
+        }
+
+        function login() {
+            keycloak.login();
+        }
+
+        function logout() {
+            keycloak.logout();
+        }
+
+        function authHeader() {
+            return {
+                "Authorization": "Bearer " + keycloak.token,
+                "Content-Type": "application/json"
             };
-        });
-    }
-
-    function closePriorityModal() {
-        document.getElementById('priorityModal').classList.remove('show');
-        selectedTaskForPriority = null;
-        selectedPriority = null;
-    }
-
-    function confirmPriorityChange() {
-        if (selectedTaskForPriority && selectedPriority) {
-            updateTaskPriority(selectedTaskForPriority, selectedPriority);
-            closePriorityModal();
         }
-    }
 
-    // Assign task functions
-    async function assignTask(taskId, assignedTo) {
-        try {
-            const url = `${API_BASE}/tasks/${taskId}/assign?assignedTo=${assignedTo || ''}`;
-            const response = await fetch(url, {
-                method: 'PATCH',
-                headers: authHeader()
+        // Load users from user-service
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${USER_SERVICE_BASE}/users`, {
+                    headers: authHeader()
+                });
+
+                if (response.ok) {
+                    allUsers = await response.json();
+                    populateUserDropdown();
+                }
+            } catch (error) {
+                console.error('Failed to load users:', error);
+            }
+        }
+
+        function populateUserDropdown() {
+            const select = document.getElementById('taskAssignee');
+            select.innerHTML = '<option value="">Unassigned</option>';
+
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.keycloakId;
+                option.textContent = `${user.username} (${user.email})`;
+                select.appendChild(option);
             });
+        }
 
-            if (response.ok) {
-                showSuccess(assignedTo ? 'Task assigned successfully!' : 'Task unassigned!');
-                loadTasks();
-            } else {
-                const errorText = await response.text();
-                showError('Failed to assign task: ' + errorText);
+        // Load tasks
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/tasks`, {
+                    headers: authHeader()
+                });
+
+                if (response.ok) {
+                    allTasks = await response.json();
+                    // reset to first page on full reload
+                    currentPage = 1;
+                    displayTasks();
+                    updateStats();
+                } else {
+                    showError('Failed to load tasks');
+                }
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                showError('Error loading tasks');
             }
-        } catch (error) {
-            console.error('Error assigning task:', error);
-            showError('Error assigning task');
         }
-    }
 
-    function showAssignModal(taskId, currentAssignee) {
-        selectedTaskForAssign = taskId;
-        
-        document.getElementById('assignModal').classList.add('show');
-        
-        const select = document.getElementById('assignUserSelect');
-        select.innerHTML = '<option value="">Unassigned</option>';
-        
-        allUsers.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.keycloakId;
-            option.textContent = `${user.username} (${user.email})`;
-            if (user.keycloakId === currentAssignee) {
-                option.selected = true;
+        // Create task
+        async function createTask(event) {
+            event.preventDefault();
+
+            const task = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                priority: document.getElementById('taskPriority').value,
+                assignedTo: document.getElementById('taskAssignee').value || null,
+                teamId: document.getElementById('taskTeamId').value || null,
+                dueDate: document.getElementById('taskDueDate').value || null,
+                status: 'OPEN'
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/tasks`, {
+                    method: 'POST',
+                    headers: authHeader(),
+                    body: JSON.stringify(task)
+                });
+
+                if (response.ok) {
+                    showSuccess('Task created successfully!');
+                    document.getElementById('taskForm').reset();
+                    loadTasks();
+                } else {
+                    showError('Failed to create task');
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                showError('Error creating task');
             }
-            select.appendChild(option);
-        });
-    }
-
-    function closeAssignModal() {
-        document.getElementById('assignModal').classList.remove('show');
-        selectedTaskForAssign = null;
-    }
-
-    function confirmAssign() {
-        if (selectedTaskForAssign !== null) {
-            const assignedTo = document.getElementById('assignUserSelect').value;
-            assignTask(selectedTaskForAssign, assignedTo);
-            closeAssignModal();
         }
-    }
 
-    // Edit task functions
-    async function updateTask(taskId, taskData) {
-        try {
-            const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
-                method: 'PUT',
-                headers: authHeader(),
-                body: JSON.stringify(taskData)
-            });
+        // Update task status
+        async function updateTaskStatus(taskId, newStatus) {
+            try {
+                const response = await fetch(`${API_BASE}/tasks/${taskId}/status?status=${newStatus}`, {
+                    method: 'PATCH',
+                    headers: authHeader()
+                });
 
-            if (response.ok) {
-                showSuccess('Task updated successfully!');
-                loadTasks();
-            } else {
-                const errorText = await response.text();
-                showError('Failed to update task: ' + errorText);
+                if (response.ok) {
+                    showSuccess('Task status updated!');
+                    loadTasks();
+                } else {
+                    showError('Failed to update status');
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                showError('Error updating status');
             }
-        } catch (error) {
-            console.error('Error updating task:', error);
-            showError('Error updating task');
         }
-    }
 
-    function showEditModal(taskId) {
-        selectedTaskForEdit = taskId;
-        const task = allTasks.find(t => t.id === taskId);
-        
-        if (!task) return;
-        
-        document.getElementById('editTaskTitle').value = task.title || '';
-        document.getElementById('editTaskDescription').value = task.description || '';
-        document.getElementById('editTaskTeamId').value = task.teamId || '';
-        document.getElementById('editTaskDueDate').value = task.dueDate ? task.dueDate.substring(0, 16) : '';
-        document.getElementById('editTaskEstimatedHours').value = task.estimatedHours || '';
-        document.getElementById('editTaskActualHours').value = task.actualHours || '';
-        document.getElementById('editTaskTags').value = task.tags ? task.tags.join(', ') : '';
-        
-        document.getElementById('editModal').classList.add('show');
-    }
+        // Update task priority
+        async function updateTaskPriority(taskId, newPriority) {
+            try {
+                const response = await fetch(`${API_BASE}/tasks/${taskId}/priority?priority=${newPriority}`, {
+                    method: 'PATCH',
+                    headers: authHeader()
+                });
 
-    function closeEditModal() {
-        document.getElementById('editModal').classList.remove('show');
-        selectedTaskForEdit = null;
-    }
-
-    function confirmEdit() {
-        if (!selectedTaskForEdit) return;
-        
-        const task = allTasks.find(t => t.id === selectedTaskForEdit);
-        if (!task) return;
-        
-        const tagsInput = document.getElementById('editTaskTags').value;
-        const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
-        
-        const updatedTask = {
-            ...task,
-            title: document.getElementById('editTaskTitle').value,
-            description: document.getElementById('editTaskDescription').value,
-            teamId: document.getElementById('editTaskTeamId').value || null,
-            dueDate: document.getElementById('editTaskDueDate').value || null,
-            estimatedHours: parseFloat(document.getElementById('editTaskEstimatedHours').value) || null,
-            actualHours: parseFloat(document.getElementById('editTaskActualHours').value) || null,
-            tags: tags
-        };
-        
-        updateTask(selectedTaskForEdit, updatedTask);
-        closeEditModal();
-    }
-
-    // Delete task
-    async function deleteTask(taskId) {
-        if (!confirm('Are you sure you want to delete this task?')) return;
-
-        try {
-            const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
-                method: 'DELETE',
-                headers: authHeader()
-            });
-
-            if (response.ok) {
-                showSuccess('Task deleted!');
-                loadTasks();
-            } else {
-                showError('Failed to delete task');
+                if (response.ok) {
+                    showSuccess('Priority updated!');
+                    loadTasks();
+                } else {
+                    const errorText = await response.text();
+                    showError('Failed to update priority: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error updating priority:', error);
+                showError('Error updating priority');
             }
-        } catch (error) {
-            console.error('Error deleting task:', error);
-            showError('Error deleting task');
-        }
-    }
-
-    // Filter tasks
-    function filterTasks(filter) {
-        currentFilter = filter;
-        
-        document.querySelectorAll('.nav-pill').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        event.target.classList.add('active');
-        
-        displayTasks();
-    }
-
-    // Display tasks
-    function displayTasks() {
-        const container = document.getElementById('taskList');
-        
-        let filteredTasks = allTasks;
-        
-        if (currentFilter === 'MY_TASKS') {
-            filteredTasks = allTasks.filter(t => t.assignedTo === currentUser);
-        } else if (currentFilter !== 'ALL') {
-            filteredTasks = allTasks.filter(t => t.status === currentFilter);
         }
 
-        if (filteredTasks.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">No tasks found</p>';
-            return;
+        // Get valid status buttons based on current status
+        function getStatusButtons(task) {
+            const currentStatus = task.status;
+            const validTransitions = VALID_TRANSITIONS[currentStatus] || [];
+
+            const buttonConfig = {
+                'IN_PROGRESS': { label: 'Start Working', class: 'btn-primary', icon: '▶️' },
+                'IN_REVIEW': { label: 'Send to Review', class: 'btn-primary', icon: '👀' },
+                'COMPLETED': { label: 'Complete', class: 'btn-success', icon: '✅' },
+                'CANCELLED': { label: 'Cancel', class: 'btn-warning', icon: '❌' },
+                'OPEN': { label: 'Reopen', class: 'btn-secondary', icon: '🔄' }
+            };
+
+            return validTransitions.map(status => {
+                const config = buttonConfig[status];
+                return `<button class="btn ${config.class}" onclick="event.stopPropagation(); updateTaskStatus('${task.id}', '${status}')">${config.icon} ${config.label}</button>`;
+            }).join(' ');
         }
 
-        container.innerHTML = filteredTasks.map(task => {
+        // View task modal functions
+        function showViewModal(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (!task) return;
+
             const assignedUser = allUsers.find(u => u.keycloakId === task.assignedTo);
-            const assigneeName = assignedUser ? assignedUser.username : 'Unassigned';
-            
-            return `
+            const assigneeName = assignedUser ? `${assignedUser.username} (${assignedUser.email})` : 'Unassigned';
+
+            document.getElementById('viewTaskTitle').textContent = task.title || '';
+            document.getElementById('viewTaskDescription').textContent = task.description || 'No description';
+            document.getElementById('viewTaskDescription').className = task.description ? 'detail-value' : 'detail-value empty';
+
+            document.getElementById('viewTaskStatus').innerHTML = `<span class="badge badge-status">${task.status}</span>`;
+            document.getElementById('viewTaskPriority').innerHTML = `<span class="badge badge-priority ${task.priority}">${task.priority}</span>`;
+            document.getElementById('viewTaskAssignee').textContent = assigneeName;
+
+            document.getElementById('viewTaskTeamId').textContent = task.teamId || 'Not assigned to team';
+            document.getElementById('viewTaskTeamId').className = task.teamId ? 'detail-value' : 'detail-value empty';
+
+            document.getElementById('viewTaskDueDate').textContent = task.dueDate ? new Date(task.dueDate).toLocaleString() : 'No due date';
+            document.getElementById('viewTaskDueDate').className = task.dueDate ? 'detail-value' : 'detail-value empty';
+
+            document.getElementById('viewTaskEstimatedHours').textContent = task.estimatedHours ? `${task.estimatedHours} hours` : 'Not set';
+            document.getElementById('viewTaskEstimatedHours').className = task.estimatedHours ? 'detail-value' : 'detail-value empty';
+
+            document.getElementById('viewTaskActualHours').textContent = task.actualHours ? `${task.actualHours} hours` : 'Not set';
+            document.getElementById('viewTaskActualHours').className = task.actualHours ? 'detail-value' : 'detail-value empty';
+
+            if (task.tags && task.tags.length > 0) {
+                document.getElementById('viewTaskTags').innerHTML = task.tags.map(tag => `<span class="badge" style="background:#e0e0e0;color:#333;margin-right:5px;">🏷️ ${tag}</span>`).join('');
+                document.getElementById('viewTaskTags').className = 'detail-value';
+            } else {
+                document.getElementById('viewTaskTags').textContent = 'No tags';
+                document.getElementById('viewTaskTags').className = 'detail-value empty';
+            }
+
+            document.getElementById('viewTaskCreatedAt').textContent = task.createdAt ? new Date(task.createdAt).toLocaleString() : 'N/A';
+            document.getElementById('viewTaskUpdatedAt').textContent = task.updatedAt ? new Date(task.updatedAt).toLocaleString() : 'N/A';
+
+            document.getElementById('viewModal').classList.add('show');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('show');
+        }
+
+        // Priority modal functions
+        function showPriorityModal(taskId, currentPriority) {
+            selectedTaskForPriority = taskId;
+            selectedPriority = currentPriority;
+
+            document.getElementById('priorityModal').classList.add('show');
+
+            document.querySelectorAll('.priority-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.priority === currentPriority) {
+                    option.classList.add('selected');
+                }
+            });
+
+            document.querySelectorAll('.priority-option').forEach(option => {
+                option.onclick = function () {
+                    document.querySelectorAll('.priority-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedPriority = this.dataset.priority;
+                };
+            });
+        }
+
+        function closePriorityModal() {
+            document.getElementById('priorityModal').classList.remove('show');
+            selectedTaskForPriority = null;
+            selectedPriority = null;
+        }
+
+        function confirmPriorityChange() {
+            if (selectedTaskForPriority && selectedPriority) {
+                updateTaskPriority(selectedTaskForPriority, selectedPriority);
+                closePriorityModal();
+            }
+        }
+
+        // Assign task functions
+        async function assignTask(taskId, assignedTo) {
+            try {
+                const url = `${API_BASE}/tasks/${taskId}/assign?assignedTo=${assignedTo || ''}`;
+                const response = await fetch(url, {
+                    method: 'PATCH',
+                    headers: authHeader()
+                });
+
+                if (response.ok) {
+                    showSuccess(assignedTo ? 'Task assigned successfully!' : 'Task unassigned!');
+                    loadTasks();
+                } else {
+                    const errorText = await response.text();
+                    showError('Failed to assign task: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error assigning task:', error);
+                showError('Error assigning task');
+            }
+        }
+
+        function showAssignModal(taskId, currentAssignee) {
+            selectedTaskForAssign = taskId;
+
+            document.getElementById('assignModal').classList.add('show');
+
+            const select = document.getElementById('assignUserSelect');
+            select.innerHTML = '<option value="">Unassigned</option>';
+
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.keycloakId;
+                option.textContent = `${user.username} (${user.email})`;
+                if (user.keycloakId === currentAssignee) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').classList.remove('show');
+            selectedTaskForAssign = null;
+        }
+
+        function confirmAssign() {
+            if (selectedTaskForAssign !== null) {
+                const assignedTo = document.getElementById('assignUserSelect').value;
+                assignTask(selectedTaskForAssign, assignedTo);
+                closeAssignModal();
+            }
+        }
+
+        // Edit task functions
+        async function updateTask(taskId, taskData) {
+            try {
+                const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: authHeader(),
+                    body: JSON.stringify(taskData)
+                });
+
+                if (response.ok) {
+                    showSuccess('Task updated successfully!');
+                    loadTasks();
+                } else {
+                    const errorText = await response.text();
+                    showError('Failed to update task: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error updating task:', error);
+                showError('Error updating task');
+            }
+        }
+
+        function showEditModal(taskId) {
+            selectedTaskForEdit = taskId;
+            const task = allTasks.find(t => t.id === taskId);
+
+            if (!task) return;
+
+            document.getElementById('editTaskTitle').value = task.title || '';
+            document.getElementById('editTaskDescription').value = task.description || '';
+            document.getElementById('editTaskTeamId').value = task.teamId || '';
+            document.getElementById('editTaskDueDate').value = task.dueDate ? task.dueDate.substring(0, 16) : '';
+            document.getElementById('editTaskEstimatedHours').value = task.estimatedHours || '';
+            document.getElementById('editTaskActualHours').value = task.actualHours || '';
+            document.getElementById('editTaskTags').value = task.tags ? task.tags.join(', ') : '';
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+            selectedTaskForEdit = null;
+        }
+
+        function confirmEdit() {
+            if (!selectedTaskForEdit) return;
+
+            const task = allTasks.find(t => t.id === selectedTaskForEdit);
+            if (!task) return;
+
+            const tagsInput = document.getElementById('editTaskTags').value;
+            const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+
+            const updatedTask = {
+                ...task,
+                title: document.getElementById('editTaskTitle').value,
+                description: document.getElementById('editTaskDescription').value,
+                teamId: document.getElementById('editTaskTeamId').value || null,
+                dueDate: document.getElementById('editTaskDueDate').value || null,
+                estimatedHours: parseFloat(document.getElementById('editTaskEstimatedHours').value) || null,
+                actualHours: parseFloat(document.getElementById('editTaskActualHours').value) || null,
+                tags: tags
+            };
+
+            updateTask(selectedTaskForEdit, updatedTask);
+            closeEditModal();
+        }
+
+        // Delete task
+        async function deleteTask(taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+                    method: 'DELETE',
+                    headers: authHeader()
+                });
+
+                if (response.ok) {
+                    showSuccess('Task deleted!');
+                    loadTasks();
+                } else {
+                    showError('Failed to delete task');
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showError('Error deleting task');
+            }
+        }
+
+        // Filter tasks
+        function filterTasks(filter) {
+            currentFilter = filter;
+
+            document.querySelectorAll('.nav-pill').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // reset to first page each time filter changes
+            currentPage = 1;
+            displayTasks();
+        }
+
+        // Display tasks (modified to support pagination)
+        function displayTasks() {
+            const container = document.getElementById('taskList');
+            const paginationContainer = document.getElementById('pagination');
+
+            let filteredTasks = allTasks;
+
+            if (currentFilter === 'MY_TASKS') {
+                filteredTasks = allTasks.filter(t => t.assignedTo === currentUser);
+            } else if (currentFilter !== 'ALL') {
+                filteredTasks = allTasks.filter(t => t.status === currentFilter);
+            }
+
+            if (filteredTasks.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:#999;padding:40px;">No tasks found</p>';
+                paginationContainer.innerHTML = '';
+                return;
+            }
+
+            // calculate paging
+            const totalItems = filteredTasks.length;
+            const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+            if (currentPage > totalPages) currentPage = totalPages || 1;
+
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+            const endIndex = startIndex + PAGE_SIZE;
+            const pageItems = filteredTasks.slice(startIndex, endIndex);
+
+            container.innerHTML = pageItems.map(task => {
+                const assignedUser = allUsers.find(u => u.keycloakId === task.assignedTo);
+                const assigneeName = assignedUser ? assignedUser.username : 'Unassigned';
+
+                return `
                 <div class="task-item" onclick="showViewModal('${task.id}')">
                     <div class="task-header">
                         <div class="task-title">${task.title}</div>
@@ -1221,53 +1288,90 @@
                     </div>
                 </div>
             `;
-        }).join('');
-    }
+            }).join('');
 
-    // Update stats
-    function updateStats() {
-        document.getElementById('totalTasks').textContent = allTasks.length;
-        document.getElementById('openTasks').textContent = allTasks.filter(t => t.status === 'OPEN').length;
-        document.getElementById('myTasks').textContent = allTasks.filter(t => t.assignedTo === currentUser).length;
-        document.getElementById('completedTasks').textContent = allTasks.filter(t => t.status === 'COMPLETED').length;
-    }
-
-    // Show messages
-    function showMessage(message, type) {
-        const container = document.getElementById('messages');
-        const div = document.createElement('div');
-        div.className = type;
-        div.textContent = message;
-        container.innerHTML = '';
-        container.appendChild(div);
-        
-        setTimeout(() => {
-            div.remove();
-        }, 5000);
-    }
-
-    function showSuccess(message) {
-        showMessage(message, 'success');
-    }
-
-    function showError(message) {
-        showMessage(message, 'error');
-    }
-
-    // Refresh token periodically
-    setInterval(() => {
-        keycloak.updateToken(70).catch(() => {
-            console.error('Failed to refresh token');
-        });
-    }, 60000);
-
-    // Auto-refresh tasks every 30 seconds
-    setInterval(() => {
-        if (keycloak.authenticated) {
-            loadTasks();
+            // render pagination controls
+            renderPagination(totalItems);
         }
-    }, 30000);
-</script>
+
+        // Pagination render and change functions (added)
+        function renderPagination(totalItems) {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>`;
+
+            // if many pages, show first, last and neighbors. Keep it simple: show all pages (you can change later)
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+
+            html += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+
+            pagination.innerHTML = html;
+        }
+
+        function changePage(page) {
+            const totalItems = (currentFilter === 'ALL') ? allTasks.length : (
+                currentFilter === 'MY_TASKS' ? allTasks.filter(t => t.assignedTo === currentUser).length : allTasks.filter(t => t.status === currentFilter).length
+            );
+            const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            displayTasks();
+            // scroll to top of task list for better UX (optional)
+            document.getElementById('taskList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalTasks').textContent = allTasks.length;
+            document.getElementById('openTasks').textContent = allTasks.filter(t => t.status === 'OPEN').length;
+            document.getElementById('myTasks').textContent = allTasks.filter(t => t.assignedTo === currentUser).length;
+            document.getElementById('completedTasks').textContent = allTasks.filter(t => t.status === 'COMPLETED').length;
+        }
+
+        // Show messages
+        function showMessage(message, type) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(div);
+
+            setTimeout(() => {
+                div.remove();
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            showMessage(message, 'success');
+        }
+
+        function showError(message) {
+            showMessage(message, 'error');
+        }
+
+        // Refresh token periodically
+        setInterval(() => {
+            keycloak.updateToken(70).catch(() => {
+                console.error('Failed to refresh token');
+            });
+        }, 60000);
+
+        // Auto-refresh tasks every 30 seconds
+        setInterval(() => {
+            if (keycloak.authenticated) {
+                loadTasks();
+            }
+        }, 30000);
+    </script>
 
 </body>
+
 </html>

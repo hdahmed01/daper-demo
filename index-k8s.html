@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@22.0.5/dist/keycloak.min.js"></script>
+    <style>
+        /* Your existing styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #c9cbd3 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .config-banner {
+            background: #ff9800;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: #4caf50;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .status-indicator.error {
+            background: #f44336;
+        }
+
+        /* Rest of your existing styles... */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2em;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        #loginScreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="status-indicator" id="statusIndicator">Checking connection...</div>
+
+<div class="config-banner" id="configBanner">
+    ⚠️ Make sure port-forward.sh is running! Run: <code>./port-forward.sh</code>
+</div>
+
+<div class="container">
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <h2>🔐 Task Management System</h2>
+            <p style="margin-bottom: 20px; color: #666;">Please login to continue</p>
+            <div id="connectionStatus"></div>
+            <button class="btn btn-primary" onclick="login()" id="loginBtn">Login with Keycloak</button>
+        </div>
+    </div>
+
+    <!-- Main App (hidden initially) -->
+    <div id="mainApp" style="display: none;">
+        <div class="header">
+            <div>
+                <h1>📋 Task Management</h1>
+                <small style="color: #999;">Connected to Kubernetes</small>
+            </div>
+            <div>
+                <span>👤 <strong id="userName"></strong></span>
+                <button class="btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <div id="messages"></div>
+
+        <div style="background: white; padding: 20px; border-radius: 12px; margin: 20px 0;">
+            <h3>🎯 Quick Test</h3>
+            <button class="btn btn-primary" onclick="testConnection()">Test API Connection</button>
+            <div id="testResult"></div>
+        </div>
+
+        <p style="text-align: center; color: #666;">
+                <div class="container">
+        <!-- Login Screen -->
+        <div id="loginScreen">
+            <div class="login-card">
+                <h2>🔐 Task Management System</h2>
+                <p style="margin-bottom: 20px; color: #666;">Please login to continue</p>
+                <button class="btn btn-primary" onclick="login()">Login with Keycloak</button>
+            </div>
+        </div>
+
+        <!-- Main App (hidden initially) -->
+        <div id="mainApp" style="display: none;">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h1>📋 Task Management</h1>
+                </div>
+                <div class="user-info">
+                    <span>👤 <strong id="userName"></strong></span>
+
+                    <a href="analysis.html" class="btn btn-secondary">
+                        📊 Analytics
+                    </a>
+
+                    <button class="btn btn-secondary" onclick="logout()">
+                        Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="openTasks">0</div>
+                    <div class="stat-label">Open Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="myTasks">0</div>
+                    <div class="stat-label">My Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completedTasks">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+
+            <div id="messages"></div>
+
+            <div class="content">
+                <!-- Create Task Form -->
+                <div class="card">
+                    <h2>➕ Create New Task</h2>
+                    <form id="taskForm" onsubmit="createTask(event)">
+                        <div class="form-group">
+                            <label>Title *</label>
+                            <input type="text" id="taskTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="taskDescription"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <select id="taskPriority">
+                                <option value="LOW">Low</option>
+                                <option value="MEDIUM" selected>Medium</option>
+                                <option value="HIGH">High</option>
+                                <option value="URGENT">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Assign To</label>
+                            <select id="taskAssignee">
+                                <option value="">Select User</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Team ID</label>
+                            <input type="text" id="taskTeamId" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="datetime-local" id="taskDueDate">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Task</button>
+                    </form>
+                </div>
+
+                <!-- Task List -->
+                <div class="card">
+                    <h2>📝 Tasks</h2>
+
+                    <!-- Nav Pills -->
+                    <div class="nav-pills">
+                        <button class="nav-pill active" onclick="filterTasks('ALL')">All Tasks</button>
+                        <button class="nav-pill" onclick="filterTasks('OPEN')">Open</button>
+                        <button class="nav-pill" onclick="filterTasks('IN_PROGRESS')">In Progress</button>
+                        <button class="nav-pill" onclick="filterTasks('IN_REVIEW')">In Review</button>
+                        <button class="nav-pill" onclick="filterTasks('COMPLETED')">Completed</button>
+                        <button class="nav-pill" onclick="filterTasks('MY_TASKS')">My Tasks</button>
+                    </div>
+
+                    <div id="taskList" class="task-list">
+                        <div class="loading">Loading tasks...</div>
+                    </div>
+
+                    <!-- Pagination UI (added) -->
+                    <div id="pagination" class="pagination"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Task Modal (Read-only) -->
+        <div id="viewModal" class="modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>👁️ Task Details</h3>
+                    <button class="close-btn" onclick="closeViewModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-group">
+                        <div class="detail-label">Title</div>
+                        <div class="detail-value" id="viewTaskTitle"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Description</div>
+                        <div class="detail-value" id="viewTaskDescription"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value" id="viewTaskStatus"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Priority</div>
+                        <div class="detail-value" id="viewTaskPriority"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Assigned To</div>
+                        <div class="detail-value" id="viewTaskAssignee"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Team ID</div>
+                        <div class="detail-value" id="viewTaskTeamId"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Due Date</div>
+                        <div class="detail-value" id="viewTaskDueDate"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Estimated Hours</div>
+                        <div class="detail-value" id="viewTaskEstimatedHours"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Actual Hours</div>
+                        <div class="detail-value" id="viewTaskActualHours"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Tags</div>
+                        <div class="detail-value" id="viewTaskTags"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Created At</div>
+                        <div class="detail-value" id="viewTaskCreatedAt"></div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">Updated At</div>
+                        <div class="detail-value" id="viewTaskUpdatedAt"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority Change Modal -->
+        <div id="priorityModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>⚡ Change Priority</h3>
+                    <button class="close-btn" onclick="closePriorityModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="priority-option" data-priority="LOW">
+                        <span>🟢 Low</span>
+                        <span class="badge badge-priority LOW">LOW</span>
+                    </div>
+                    <div class="priority-option" data-priority="MEDIUM">
+                        <span>🟡 Medium</span>
+                        <span class="badge badge-priority MEDIUM">MEDIUM</span>
+                    </div>
+                    <div class="priority-option" data-priority="HIGH">
+                        <span>🟠 High</span>
+                        <span class="badge badge-priority HIGH">HIGH</span>
+                    </div>
+                    <div class="priority-option" data-priority="URGENT">
+                        <span>🔴 Urgent</span>
+                        <span class="badge badge-priority URGENT">URGENT</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="confirmPriorityChange()">Update
+                    Priority</button>
+            </div>
+        </div>
+
+        <!-- Assign Task Modal -->
+        <div id="assignModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>👤 Assign Task</h3>
+                    <button class="close-btn" onclick="closeAssignModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Select User</label>
+                        <select id="assignUserSelect"
+                            style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                            <option value="">Unassigned</option>
+                        </select>
+                    </div>
+                    <div
+                        style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px; font-size: 0.9em; color: #666;">
+                        <strong>💡 Note:</strong> Assigning a task will automatically move OPEN tasks to IN_PROGRESS
+                        status.
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="confirmAssign()">Assign
+                    Task</button>
+            </div>
+        </div>
+
+        <!-- Edit Task Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>✏️ Edit Task</h3>
+                    <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Title *</label>
+                        <input type="text" id="editTaskTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="editTaskDescription"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Team ID</label>
+                        <input type="text" id="editTaskTeamId" placeholder="Optional">
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="datetime-local" id="editTaskDueDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated Hours</label>
+                        <input type="number" id="editTaskEstimatedHours" step="0.5" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Actual Hours</label>
+                        <input type="number" id="editTaskActualHours" step="0.5" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Tags (comma-separated)</label>
+                        <input type="text" id="editTaskTags" placeholder="bug, frontend, urgent">
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="confirmEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+        </p>
+    </div>
+</div>
+
+<script>
+    // ============================================
+    // KUBERNETES CONFIGURATION
+    // ============================================
+    
+    // API endpoints - these work when port-forward.sh is running
+    const API_CONFIG = {
+        TASK_SERVICE: 'http://localhost:8081',
+        USER_SERVICE: 'http://localhost:8085',
+        KEYCLOAK: 'http://localhost:8090'
+    };
+
+    let keycloak;
+    let connectionStatus = { keycloak: false, taskService: false };
+
+    // ============================================
+    // CONNECTION CHECKER
+    // ============================================
+    async function checkConnections() {
+        const statusEl = document.getElementById('statusIndicator');
+        const bannerEl = document.getElementById('configBanner');
+        
+        try {
+            // Check Keycloak
+            const kcResponse = await fetch(`${API_CONFIG.KEYCLOAK}/realms/taskmanagement`, { 
+                method: 'GET',
+                mode: 'cors'
+            });
+            connectionStatus.keycloak = kcResponse.ok;
+
+            // Check Task Service
+            const taskResponse = await fetch(`${API_CONFIG.TASK_SERVICE}/actuator/health`, {
+                method: 'GET',
+                mode: 'cors'
+            }).catch(() => ({ ok: false }));
+            connectionStatus.taskService = taskResponse.ok;
+
+            if (connectionStatus.keycloak && connectionStatus.taskService) {
+                statusEl.textContent = '✅ Connected';
+                statusEl.className = 'status-indicator';
+                bannerEl.style.display = 'none';
+            } else {
+                statusEl.textContent = '❌ Connection Failed';
+                statusEl.className = 'status-indicator error';
+                bannerEl.style.display = 'block';
+                showConnectionError();
+            }
+        } catch (error) {
+            statusEl.textContent = '❌ Connection Failed';
+            statusEl.className = 'status-indicator error';
+            bannerEl.style.display = 'block';
+            showConnectionError();
+        }
+    }
+
+    function showConnectionError() {
+        const connectionStatus = document.getElementById('connectionStatus');
+        connectionStatus.innerHTML = `
+            <div class="error">
+                <p><strong>⚠️ Cannot connect to services!</strong></p>
+                <p>Make sure you're running: <code>./port-forward.sh</code></p>
+                <p style="margin-top: 10px;">
+                    <small>
+                        Keycloak: ${connectionStatus.keycloak ? '✅' : '❌'}<br>
+                        Task Service: ${connectionStatus.taskService ? '✅' : '❌'}
+                    </small>
+                </p>
+            </div>
+        `;
+    }
+
+    // ============================================
+    // KEYCLOAK INITIALIZATION
+    // ============================================
+    const keycloakConfig = {
+        url: API_CONFIG.KEYCLOAK,
+        realm: "taskmanagement",
+        clientId: "task-management-web"
+    };
+
+    keycloak = new Keycloak(keycloakConfig);
+
+    // Check connections first
+    checkConnections().then(() => {
+        if (connectionStatus.keycloak) {
+            // Initialize Keycloak
+            keycloak.init({ 
+                onLoad: "check-sso",
+                checkLoginIframe: false
+            }).then(authenticated => {
+                if (authenticated) {
+                    showMainApp();
+                } else {
+                    showLoginScreen();
+                }
+            }).catch(err => {
+                console.error('Keycloak init failed', err);
+                showError('Failed to initialize authentication. Check if port-forward.sh is running.');
+            });
+        }
+    });
+
+    // Recheck every 10 seconds
+    setInterval(checkConnections, 10000);
+
+    function showLoginScreen() {
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+    }
+
+    function showMainApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('userName').textContent = keycloak.tokenParsed.preferred_username || 'User';
+    }
+
+    function login() {
+        if (!connectionStatus.keycloak) {
+            alert('Cannot connect to Keycloak! Make sure port-forward.sh is running.');
+            return;
+        }
+        keycloak.login();
+    }
+
+    function logout() {
+        keycloak.logout();
+    }
+
+    function authHeader() {
+        return {
+            "Authorization": "Bearer " + keycloak.token,
+            "Content-Type": "application/json"
+        };
+    }
+
+    // ============================================
+    // TEST CONNECTION FUNCTION
+    // ============================================
+    async function testConnection() {
+        const resultEl = document.getElementById('testResult');
+        resultEl.innerHTML = '<p>Testing...</p>';
+
+        try {
+            const response = await fetch(`${API_CONFIG.TASK_SERVICE}/tasks`, {
+                headers: authHeader()
+            });
+
+            if (response.ok) {
+                const tasks = await response.json();
+                resultEl.innerHTML = `
+                    <div class="success">
+                        ✅ Connected successfully!<br>
+                        Found ${tasks.length} tasks
+                    </div>
+                `;
+            } else {
+                resultEl.innerHTML = `
+                    <div class="error">
+                        ❌ API returned error: ${response.status}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            resultEl.innerHTML = `
+                <div class="error">
+                    ❌ Connection failed: ${error.message}<br>
+                    Make sure port-forward.sh is running!
+                </div>
+            `;
+        }
+    }
+
+    function showError(message) {
+        const messagesEl = document.getElementById('messages');
+        const div = document.createElement('div');
+        div.className = 'error';
+        div.textContent = message;
+        messagesEl.innerHTML = '';
+        messagesEl.appendChild(div);
+        setTimeout(() => div.remove(), 5000);
+    }
+
+    // Refresh token periodically
+    setInterval(() => {
+        if (keycloak.authenticated) {
+            keycloak.updateToken(70).catch(() => {
+                console.error('Failed to refresh token');
+            });
+        }
+    }, 60000);
+</script>
+
+</body>
+</html>

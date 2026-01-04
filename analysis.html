@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Task Analytics Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <style>
@@ -209,12 +210,48 @@
                 font-size: 1.7em;
             }
         }
+        .btn-back {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
+}
+
+.btn-back svg {
+    stroke: white;
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+}
+
+.btn-back:hover {
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+.btn-back:hover svg {
+    transform: translateX(-2px); /* subtle arrow shift */
+}
+
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
+        <button class="btn-back" onclick="goBack()" aria-label="Go Back">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"></line>
+    <polyline points="12 19 5 12 12 5"></polyline>
+  </svg>
+</button>
         <h1>📊 Task Analytics Dashboard</h1>
         <p class="subtitle">Real-time insights into your task management system</p>
         <p class="last-updated">Last Updated: <span id="lastUpdated">Loading...</span></p>
@@ -312,6 +349,80 @@
         </div>
     </div>
 </div>
+
+<!-- ======= ADDED: Keycloak init + fetch wrapper (keeps your existing file unchanged) ======= -->
+<!-- This block initializes Keycloak (same realm/client as your index.html) and ensures every fetch() automatically sends the Bearer token -->
+<script src="https://cdn.jsdelivr.net/npm/keycloak-js@22.0.5/dist/keycloak.min.js"></script>
+<script>
+    (function(){
+        // Keycloak configuration - matches your index.html
+        const kcConfig = {
+            url: "http://localhost:8090",
+            realm: "taskmanagement",
+            clientId: "task-management-web"
+        };
+
+        // create instance
+        window._kc = new Keycloak(kcConfig);
+
+        // store a promise that resolves when Keycloak init finished
+        window._kcReady = window._kc.init({
+            onLoad: 'check-sso',
+            checkLoginIframe: false
+        }).then(authenticated => {
+            if (!authenticated) {
+                // Not logged in: redirect to your secured entry point (index.html) to login
+                window.location.href = 'index.html';
+                return false;
+            }
+
+            // start periodic token refresh (same pattern as your index)
+            setInterval(() => {
+                window._kc.updateToken(70).catch(() => {
+                    console.error('Failed to refresh token');
+                });
+            }, 60000);
+
+            return true;
+        }).catch(err => {
+            console.error('Keycloak init error', err);
+            // redirect to index to allow login
+            window.location.href = 'index.html';
+        });
+
+        // Monkey-patch global fetch so all existing fetch(...) calls automatically include Authorization header
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = async function(resource, init) {
+            try {
+                await window._kcReady; // wait until init completes
+            } catch (e) {
+                // If init failed, redirect to login
+                window.location.href = 'index.html';
+                return Promise.reject(new Error('Auth init failed'));
+            }
+
+            init = init || {};
+            init.headers = init.headers || {};
+
+            // If headers is a Headers instance, use its API
+            if (init.headers instanceof Headers) {
+                init.headers.set('Authorization', 'Bearer ' + window._kc.token);
+            } else {
+                // convert possible existing Headers-like object to plain object
+                if (init.headers && typeof init.headers === 'object') {
+                    init.headers = Object.assign({}, init.headers, {
+                        'Authorization': 'Bearer ' + window._kc.token
+                    });
+                } else {
+                    init.headers = { 'Authorization': 'Bearer ' + window._kc.token };
+                }
+            }
+
+            return originalFetch(resource, init);
+        };
+    })();
+</script>
+<!-- ======= END ADDED BLOCK ======= -->
 
 <script>
     const API_BASE = 'http://localhost:8083';
@@ -475,6 +586,9 @@
 
     loadDashboard();
     setInterval(loadDashboard, 30000);
+    function goBack() {
+        window.history.back();
+    }
 </script>
 
 </body>
